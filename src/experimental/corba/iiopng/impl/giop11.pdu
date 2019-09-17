@@ -1,0 +1,50 @@
+
+Peer = {
+     Name = GIOPPeer;
+
+     PDUs = {
+       REQUEST = {
+	 GIOP::MessageHeader_1_1 msghdr,
+	 GIOP::RequestHeader_1_1 reqhdr,
+	 Frame body		  
+       },
+       REPLY   = {
+	 GIOP::MessageHeader_1_1 msghdr,
+	 GIOP::ReplyHeader_1_1 rephdr,
+	 Frame body
+       },
+       CANCELREQUEST = {
+	 GIOP::MessageHeader_1_1 msghdr,
+	 GIOP::CancelRequestHeader reqhdr
+       },
+       LOCATEREQUEST  = {
+	 GIOP::MessageHeader_1_1 msghdr,
+	 GIOP::LocateRequestHeader_1_1 reqhdr
+       },
+       LOCATEREPLY   = {
+	 GIOP::MessageHeader_1_1 msghdr,
+	 GIOP::LocateReplyHeader_1_1 rephdr,
+	 Frame body
+       },
+       CLOSECONNECTION = {
+	 GIOP::MessageHeader_1_1 msghdr,
+       },
+       MESSAGEERROR = {
+	 GIOP::MessageHeader_1_1 msghdr,
+       },
+       FRAGMENT = {
+	 GIOP::MessageHeader_1_1 msghdr,
+       },
+       TCPOPEN = {
+	 InetAddr *addr
+       },
+       TCPOPENOK = {
+	 Uint32 cep,
+	 Frame data
+       },
+       TCPFAIL = {
+	 Uint32 cep,
+	 Frame data
+       };
+     };
+};

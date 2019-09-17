@@ -1,0 +1,71 @@
+class IiopSm {
+
+  virtual bool run(Message *msg, Sint16 *iiopstate, 
+			IiopConnection* connection)
+
+  virtual bool run(Frame *frm, Sint16 *iiopstate, 
+			IiopConnection* connection)
+}
+
+
+class IiopSm_1_0 : public Giop_1_0, public IiopSm {
+  
+  bool ready_UP_Request (Message *msg);
+  bool ready_UP_Reply (Message *msg);
+  bool ready_UP_cancelRequest (Message *msg);
+  bool ready_UP_locateRequest (Message *msg);
+  bool ready_UP_locateReply (Message *msg); 
+  bool ready_UP_closeConnection (Message *msg);
+  
+  bool ready_PEER_Request (Giop::IiopMsg *msg);
+  bool ready_PEER_Reply (Giop::IiopMsg *msg);
+  bool ready_PEER_cancelRequest (Giop::IiopMsg *msg);
+  bool ready_PEER_locateRequest (Giop::IiopMsg *msg);
+  bool ready_PEER_locateReply (Giop::IiopMsg *msg);
+  bool ready_PEER_cancelReply (Giop::IiopMsg *msg); 
+  bool ready_PEER_closeConnection (Giop::IiopMsg *msg);
+  bool ready_PEER_messageError (Giop::IiopMsg *msg);
+
+}
+
+class IiopSm_1_1 : public Giop_1_1, public IiopSm {
+
+  bool ready_UP_Request (Message *msg);
+  bool ready_UP_Reply (Message *msg);
+  bool ready_UP_cancelRequest (Message *msg);
+  bool ready_UP_locateRequest (Message *msg);
+  bool ready_UP_locateReply (Message *msg); 
+  bool ready_UP_closeConnection (Message *msg);
+  bool ready_UP_fragment (Message *msg);
+
+  bool ready_PEER_Request (Giop::IiopMsg *msg);
+  bool ready_PEER_Reply (Giop::IiopMsg *msg);
+  bool ready_PEER_cancelRequest (Giop::IiopMsg *msg);
+  bool ready_PEER_locateRequest (Giop::IiopMsg *msg);
+  bool ready_PEER_locateReply (Giop::IiopMsg *msg);
+  bool ready_PEER_cancelReply (Giop::IiopMsg *msg); 
+  bool ready_PEER_closeConnection (Giop::IiopMsg *msg);
+  bool ready_PEER_messageError (Giop::IiopMsg *msg);
+
+}
+
+class IiopSm_1_2 : public Giop_1_2, public IiopSm {
+
+  bool ready_UP_Request (Message *msg);
+  bool ready_UP_Reply (Message *msg);
+  bool ready_UP_cancelRequest (Message *msg);
+  bool ready_UP_locateRequest (Message *msg);
+  bool ready_UP_locateReply (Message *msg); 
+  bool ready_UP_closeConnection (Message *msg);
+  bool ready_UP_fragment (Message *msg);
+
+  bool ready_PEER_Request (Giop::IiopMsg *msg);
+  bool ready_PEER_Reply (Giop::IiopMsg *msg);
+  bool ready_PEER_cancelRequest (Giop::IiopMsg *msg);
+  bool ready_PEER_locateRequest (Giop::IiopMsg *msg);
+  bool ready_PEER_locateReply (Giop::IiopMsg *msg);
+  bool ready_PEER_cancelReply (Giop::IiopMsg *msg); 
+  bool ready_PEER_closeConnection (Giop::IiopMsg *msg);
+  bool ready_PEER_messageError (Giop::IiopMsg *msg);
+
+}

@@ -1,0 +1,84 @@
+.\"  Copyright 2001
+.\"      Telecoms Lab, Tampere University of Technology.  All rights reserved.
+
+.\"  Redistribution and use in source and binary forms, with or without
+.\"  modification, are permitted provided that the following conditions
+.\"  are met:
+.\"  1. Redistributions of source code must retain the above copyright
+.\"     notice, this list of conditions and the following disclaimer.
+.\"  2. Redistributions in binary form must reproduce the above copyright
+.\"     notice, this list of conditions and the following disclaimer in the
+.\"     documentation and/or other materials provided with the distribution.
+.\"
+.\"  THIS SOFTWARE IS PROVIDED BY TAMPERE UNIVERSITY OF TECHNOLOGY AND 
+.\"  CONTRIBUTORS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+.\"  BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+.\"  FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE UNIVERSITY
+.\"  OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+.\"  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+.\"  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+.\"  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+.\"  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+.\"  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+.\"  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.\"  $Log: xcg.man,v $
+.\"  Revision 1.1  2002/08/23 06:19:42  hartmanj
+.\"  Initial entry
+.\"
+.\"
+
+.TH XCG 1 DOORS
+
+.SH NAME
+xcg - DOORS XML Code Generators. Tools to help you
+write protocols.
+
+.SH DESCRIPTION
+The DOORS XML Code Generators are a set of tools which help a user
+in creating protocol implementations. These tools generate a set of
+C++ classes from XML input files. There are three generators:
+.B dsapg
+,
+.B dpeerg
+and
+.B dmsg.
+These generators all have their own individual input file and they
+all generate a different part of the protocol implementation. Also
+some handwritten code is required from the user to attain a working
+protocol implementation.
+.P
+Here's a short description of each generator:
+.P
+.B dsapg
+creates service accesspoint abstraction as a set of C++ classes from
+XML definitions written by the user. A service accesspoint comprises
+of one or two interfaces for the service and a set of message classes
+that can be passed through the interfaces.
+.P
+.B dpeerg
+creates PDU classes to be used in peer to peer communication. Several
+PDU classes can be defined in one XML file. The user has to write the
+decoding and encoding methods by hand since these functions cannot be
+derived from simple XML definitions.
+.P
+.B dsmg
+creates a state machine class. The inputs and actions are specified
+for each state and a C++ class representing the state machine is
+obtained. For type-checking, the SAP definition and the peer definition
+files should also be given for the state machine generator.
+.P
+Each generator is fed with it's own definition file written by the user.
+
+.SH SEE ALSO
+.B dsapg(1), dpeerg(1), dsmg(1), DOORS(1)
+for more information about the individual generators and
+.B The DOORS Project.
+
+.SH URL
+Home page of the  DOORS  project  is  currently  at
+.I https://doors.atm.tut.fi/.
+
+.SH AUTHORS
+The  DOORS XML Code Generators were created by Joona Hartman
+and Petri Järvinen  with  big  help  from Bilhanan Silverajan.

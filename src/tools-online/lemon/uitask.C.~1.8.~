@@ -1,0 +1,656 @@
+//Editor-Info: -*- C++ -*-
+//
+
+#include <doors/uitask.h>
+#include <doors/editask.h>
+#include <doors/command.h>
+#include <doors/hsitif.h>
+#include <doors/lemonhand.h>
+#include <doors/lemonhc.h>
+#include <doors/dmm.h>
+#include <doors/obl_string.h>
+#include <doors/obl_process.h>
+#include <doors/doorsconf.h>
+
+extern Command *buildCommandTree (UiTask *ui);
+
+static const char blanks[] = " \t\n\r";
+
+UiTask *UiTask::globalUi = 0;
+TtyLogger *UiTask::tty = 0;
+
+
+//
+//Constructor: UiTask
+//
+//Parameters: 
+//      Scheduler *, IoHandler *
+//
+//Description: 
+//      Gives variables their default value.
+//      A default logger is created and inserted for vout.
+//      For input, and EditTask is created and connected to input port.
+//      A resource file is inserted as input.
+//
+UiTask :: UiTask (Scheduler *s, IoHandler *ioh) 
+    : EventTask("User Interface", s), 
+      input(this), 
+      commandSet(buildCommandTree(this)),
+      current(commandSet), 
+      inputList(0), 
+      recording(false),
+      terminated (false)
+{
+    ioHandler = ioh;
+    globalUi = this;
+    tty = new TtyLogger (s, ioh);
+    _MT_SCHEDULE(tty);
+    // output
+    vout.putOutput (tty->getPort ());
+
+    // input task
+    defaultInput = new EditTask (s, ioh);
+    input.connect (defaultInput->getPort ());
+
+    // get resource file
+    obl_Process &process = obl_Process::instance();
+    obl_FileStatus fileStatus;
+    obl_String LEMonRc("lemon.rc");
+    process.fileStatus(fileStatus,LEMonRc);
+    if(fileStatus.exist) {
+	addInput ("lemon.rc");
+    }
+    TQueue<HandlerCreator> *creators = 
+	HandlerCreatorPool::instance()->creators ();
+    creators->insert(new LEMonHandlerCreator);
+#if _CF_GPT
+    otl_MscSystem::instance();
+#endif
+    vout << endv << "Welcome to " << PACKAGE_NAME << " Local Event Monitor v" << PACKAGE_VERSION << endv;
+    vout << "Copyright(C) 1999 - 2003, Tampere University of Technology, Finland" << endv;
+    vout << "Copyright(C) 1996 - 2000, Lappeenranta University of Technology, Finland" << endv;
+    vout << "Send bug reports to: "<< PACKAGE_BUGREPORT << endv << endv;
+    WordList empty;                  // print commands 
+    current->execute (&empty);
+}
+
+UiTask *UiTask::instance()
+{
+    _DOORS_ERROR(globalUi,"UiTask is not yet initialised");
+    return globalUi;
+}
+
+//
+//Destructor: UiTask
+//
+//Description: 
+//      Destructor
+//
+UiTask :: ~UiTask (void)
+{
+    if (globalUi == this) {
+	globalUi = 0;
+    }
+
+    Name n ("tools");
+    Command *cmd;
+    
+    if (cmd = Command :: top->subCommands ()->find (&n)) {
+	n = "mem";
+	if (cmd = cmd->subCommands ()->find (&n)) {
+	    delete ((Menu :: TracedSymbol *) cmd)->handler ();
+	}
+    }
+    
+    if (Command :: top) {
+	delete Command :: top;
+	Command :: top = 0;
+    }
+    if (Menu :: System :: tmpObjects) {
+	delete Menu :: System :: tmpObjects;
+	Menu :: System :: tmpObjects = 0;
+
+    }
+
+    vout.getOutput (tty->getPort ());
+
+    if (tty) {
+	delete tty;
+	tty = 0;
+    }
+
+    if (inputList) {
+	delete inputList;
+	inputList = 0;
+    }
+
+    if (defaultInput) {
+	delete defaultInput;
+	defaultInput = 0;
+    }
+    SymbolHandler *th = symbolTable.getStaticTree ()->handler (LEMON_HANDLER);
+    if (th) {
+	delete th;
+	th = 0;
+    }
+    if (HandlerCreatorPool :: instance ()) {
+      delete HandlerCreatorPool :: instance ();
+    }
+    if (&(obl_Process :: instance ())) {
+      delete &(obl_Process :: instance ());
+    }
+}
+
+
+
+//
+//Function: skipBlanks
+//
+//Parameters: 
+//      Frame *
+//
+//Member-Of: UiTask
+//
+//Description: 
+//      Removes blank characters from the beginning of a frame.
+//      This function is global.
+//
+void skipBlanks (Frame *frm) 
+{
+    while (frm->length() > 0 && strchr (blanks, frm->read (0)))
+	(void) frm->getFirst();
+    return;
+}
+
+
+//
+//Function: parseLine
+//
+//Parameters: 
+//      Frame *
+//
+//Member-Of: UiTask
+//
+//Return: 
+//      WordList *
+//
+//Description: 
+//      Takes line as a parameter, parses it to words, and returns 
+//      a word list. Takes care of quoted words, and complains about
+//      special characters.
+//      Maybe a lex parser could be used, but for now this is enough.
+//      This function is global.
+//
+WordList *parseLine (Frame *frm)
+{    
+    Byte b, buf [1024]; // maximum size of word
+    int i = 0, quote = 0;
+    
+    WordList *inputList = new WordList;
+    skipBlanks (frm);
+    
+    while (frm->length() > 0) {
+	b = frm->getFirst ();
+		    
+	if (b == '"' || b == '\'') {  // "
+	    // nah. not too strict about quotation marks
+	    quote = !quote;
+	    continue;
+	}
+	
+	if (!quote && strchr (blanks, b)) {
+	    buf [i] = '\0';
+	    Name *node = new Name((char *)buf);
+	    inputList->append (node);
+	    quote = i = 0;
+	    skipBlanks (frm);
+
+	} else {
+	    if (!quote && !isalnum (b) && !strchr ( (const char *) ".?_=-*", b)) {
+		vout << "illegal char '" << (char)b << "'" << endv;
+	    }
+	    buf [i++] = (char) b;
+	}
+    }
+    return inputList;
+}
+
+
+//
+//Function: execute
+//
+//Member-Of: UiTask
+//
+//Parameters: 
+//      EventType, Message *
+//
+//Description: 
+//      This function gets one line from user, parses it to list words 
+//      and delivers it to command hierarchy.
+//      This function also displays messages that are received from
+//      user system.
+//
+bool UiTask :: execute (EventType type, Message *msg)
+{
+    TreeSearcher searcher (symbolTable.getStaticTree ());
+    Symbol *symbol = 0;
+
+    if (type == UserEvent) {
+	vout << "*** Message from HELL !!!";
+	delete msg;
+	return true;
+    }
+
+    // we got something from luser
+    InputMessage *im = (InputMessage *) msg;
+
+    // recreate current WordList 
+    if (inputList) {
+	delete inputList;
+    }
+    inputList = parseLine (&im->data);
+    delete im;
+
+    // now we have a WordList in \'inputList\'
+    current = current->execute (inputList);
+
+    Name *tmp;
+    while (tmp = inputList->remove()) {
+	vout << "Discarding :'" << *tmp << "'" << endv;
+        delete tmp;
+    }
+
+    return true;
+}
+
+
+//
+//Function: save
+//
+//Member-Of: UiTask
+//
+//Parameters: 
+//      Message *, EventType
+//
+//Description: 
+//      Save the arrived message to the message queue of EventTask.
+//      Requests time from scheduler if message comes from first Port
+//      in input MultiPort or from output port.
+//
+bool UiTask :: save (Message *msg, EventType type)
+{
+    PortIterator iterator (&input.others);
+
+    switch (type) {
+      case UserEvent:
+	// pass input messages to systemQueue
+	
+      case SystemEvent:
+	if (recording && msg->getSender () == defaultInput->getPort ()) {
+	    performRecord (&((InputMessage *)msg)->data);
+	}
+
+	systemQueue.append (msg);
+
+	break;
+
+      default:
+	  _DOORS_FAULT(0,"bad type of message");
+	delete msg;
+    }
+
+    // Inform the scheduler that this task need to be executed in near future,
+    // if it doesn't already know it.
+    if (scheduler && getLoad ()) {
+	scheduler->request (this);
+    }
+
+    // when the message is saved or deleted nobody should no more 
+    // have any references to it.
+    return true;
+}
+
+
+//
+//Function: event
+//
+//Member-Of: UiTask
+//
+//Parameters: 
+//      Message *
+//
+//Return: 
+//      EventType
+//
+//Description: 
+//      Get a message from queue system or user queue
+//      and return value indicating queue. From user queue only 
+//      the messages that come from the current input are accepted.
+//
+EventType UiTask :: event (Message *&msg)
+{
+    if (msg = (Message *)systemQueue.remove (&input, cmp)) {
+	return SystemEvent;
+    }
+
+    if (msg = (Message *)messageQueue.remove ()) {
+	return UserEvent;
+    }    
+    return NoEvent;
+}
+
+
+//
+//Function: getLoad
+//
+//Member-Of: UiTask
+//
+//Return: 
+//      Load
+//
+//Description: 
+//      Function returns count of system messages plus count of user messages
+//      that come from current input.
+//
+Load UiTask :: getLoad (void) const
+{
+  LinkListIterator sysIterator (&systemQueue);
+  LinkListIterator msgIterator (&messageQueue);
+  PortIterator portIterator (&input.others);
+  
+  Message *tmp;
+  int count = 0;
+  while (tmp = (Message *) sysIterator.next ()) {
+    count++;
+  }
+  return count + msgIterator.length ();
+}
+
+
+//
+//Function: disconnect
+//
+//Member-Of: UiTask
+//
+//Parameters: 
+//      Port *
+//
+//Return: 
+//      EventType
+//
+//Description: 
+//      This function is called when an input (InputTask) like macro, 
+//      is terminated. If there are messages in queue, new time is requested.
+//
+bool UiTask :: disconnect (Port *)
+{
+    if (scheduler && getLoad ()) {
+	scheduler->request (this);
+    }
+    return false;
+}
+
+
+//
+//Function: terminate
+//
+//Member-Of: UiTask
+//
+//Description: 
+//      This function is called when user selects Exit option from the
+//      interface. It just sets a 'terminated' flag of this task on.
+//      While running a main scheduler system can observe the 'terminated'
+//      flag by isTerminated function of this task to finish scheduling
+//      and end the program.
+//      
+void UiTask :: terminate (void) {
+
+    terminated = true;
+}
+
+
+//
+//Function: cmp
+//
+//Member-Of: UiTask
+//
+//Parameters: 
+//      const Link *cell, const void *p
+//
+//Return: 
+//      bool
+//
+//Description: 
+//      Simple compare function for tqueue commands. Function compares
+//      if given pointer matches to target of message.
+//
+bool UiTask :: cmp (const Link *cell, const void *p)
+{
+    return (((const Message *)cell)->getTarget () == p) ? true : false;
+}
+
+
+//
+//Function: macroStart
+//
+//Member-Of: UiTask
+//
+//Parameters: 
+//      const char *name
+//
+//Description: 
+//      Opens file for recording a macro.
+//
+void UiTask :: macroStart (const char *n)
+{
+    if (recording) {
+	verr << "Allready connected to a macro" << endv;
+	macroEnd ();
+    }
+
+    if (0 == (macroFP = fopen (n, "w"))) {
+	vout << "Cannot open macro file";
+	recording = false;
+    } else {
+	recording = true;
+    }
+
+    return;
+}
+
+
+//
+//Function: macroEnd
+//
+//Member-Of: UiTask
+//
+//Description: 
+//      Finishes recording of a macro, and closes file
+//
+void UiTask :: macroEnd (void)
+{
+    recording = false;
+
+    if (macroFP) {
+	fclose (macroFP);
+    }
+    return;
+}
+
+
+//
+//Function: performRecord
+//
+//Member-Of: UiTask
+//
+//Parameters: 
+//      Frame *
+//
+//Description: 
+//      Performs the actual recording of a macro by writing contents of 
+//      a frame to the opened file.
+//
+void UiTask :: performRecord (Frame *frame)
+{
+    FrameIterator iterator (frame);
+    FrameSize size;
+    void *p;
+    while ((p = iterator.nextCell (&size)) && size > 0) {
+	fwrite ((const char *) p, (int) size, 1, macroFP);
+    } 
+}
+
+
+//
+//Function: addInput
+//
+//Member-Of: UiTask
+//
+//Parameters: 
+//      const char *n
+//
+//Description: 
+//      Creates new InputTask for given name, and attaches it to current
+//      input. This is used mainly in running a macro.
+//
+void UiTask :: addInput (const char *n)
+{
+    InputTask *tmp = new InputTask (scheduler, ioHandler, n);
+    input.connect (tmp->getPort ());
+	
+    return;
+}
+
+
+//
+//Function: readLine
+//
+//Member-Of: UiTask
+//
+//Parameters: 
+//      char *buffer, int length
+//
+//Description: 
+//      Resets terminal back to normal line mode and reads a string.
+//      After that the terminal is returned to raw mode for command line
+//      editing.
+//
+void UiTask :: readLine (char *buffer, int length)
+{
+    if (globalUi && globalUi->defaultInput) {
+	globalUi->defaultInput->resetTerm ();
+	fgets (buffer, length, stdin);
+	globalUi->defaultInput->setTerm ();
+    }
+    return;
+}
+
+
+//
+//Function: readChar
+//
+//Member-Of: UiTask
+//
+//Parameters: 
+//      const char *buffer
+//
+//Description: 
+//      Resets terminal back to normal line mode and reads a character.
+//      After that the terminal is returned to raw mode for command line
+//      editing.
+//
+int UiTask :: readChar (void)
+{
+    int result = EOF;
+    if (globalUi && globalUi->defaultInput) {
+	globalUi->defaultInput->resetTerm ();
+	result = fgetc (stdin);
+	globalUi->defaultInput->setTerm ();
+    }
+    return result;
+}
+
+
+bool UiTask :: notify (MemoryManager *mm) {
+
+    const char *mmtype = getenv ("DMMTYPE");
+    bool rc = false;
+    if (mmtype) {
+      if (strcmp (mmtype, "statplain") == 0) {
+	StatPlainMemManager *pm = (StatPlainMemManager *) MemoryManager :: instance ();
+	DYNAMIC_SYMBOL (pm, "mem", 0);
+	rc = true;
+      }
+      
+      if (strcmp (mmtype, "statblock") == 0) {
+	StatBlockManager *bm = (StatBlockManager *) MemoryManager :: instance ();
+	DYNAMIC_SYMBOL (bm, "mem", 0);
+	rc = true;
+      }
+      
+      if (strcmp (mmtype, "statblockmem") == 0) {
+	StatBlockMemManager *bmm = (StatBlockMemManager *) MemoryManager :: instance ();
+	DYNAMIC_SYMBOL (bmm, "mem", 0);
+	rc = true;
+      }
+    }
+    return rc;
+}
+
+
+void UiTask :: history (bool b) {
+
+    defaultInput->history (b);
+}
+
+
+Command *buildCommandTree (UiTask *ui) {
+    
+    Command *top = Command :: top;
+    Command *cmd1, *cmd2;
+
+    new Menu :: Help (top);
+    new Menu :: Exit (ui, top, "Terminates program execution.");
+    new Menu :: Shell (top, "Executes a shell command.");
+
+    new Menu :: Unalias (top, "Disables alias given as argument.");
+
+    new Menu :: Alias (top, "Displays (no args) aliases or sets new alias.");
+
+
+    SystemHandler *shandler = new SystemHandler (symbolTable.getStaticTree (), 
+						 "Access to symbol structure.");
+    symbolTable.getStaticTree ()->setHandler (shandler, LEMON_HANDLER);
+
+    // tools
+    cmd1 = new Menu::Tool(top, "Access to on-line tools.");
+    new Menu :: Dot (cmd1);
+    new Menu :: Help (cmd1);
+    cmd2 = new Menu :: Tool :: Macro (ui, cmd1, "Access to macro functions.");
+    new Menu :: Dot (cmd2);
+    new Menu :: Help (cmd2);
+    new Menu :: Tool :: Macro :: Run (cmd2, "Runs macro given as argument from file.");
+    new Menu :: Tool :: Macro :: Make (cmd2, "Begins recording of macro.");
+
+    cmd2 = new Menu :: Tool :: Log (cmd1, "Access to log functions.");
+    new Menu :: Dot (cmd2);
+    new Menu :: Help (cmd2);
+    new Menu :: Tool :: Log :: Open 
+	(ui,cmd2,
+	 "Opens a file given as argument and begins logging to that file.");
+
+    // msc
+#if _CF_GPT
+    cmd2 = new otl_CommandMsc(cmd1,"Message Sequnecy Chart");
+    new Menu::Dot(cmd2);
+    new Menu::Help(cmd2);
+    new otl_CommandMscNewView(cmd2,"make a new view");
+    new otl_CommandMscStart(cmd2,"start a msc recording");
+    new otl_CommandMscStop(cmd2,"stop a msc recording");
+    new otl_CommandMscInfo(cmd2,"msc record information");
+#endif
+
+    return top;
+}
+
+

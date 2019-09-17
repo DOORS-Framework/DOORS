@@ -1,0 +1,42 @@
+
+// File: CMB.idl
+
+#ifndef CMB_IDL
+#define CMB_IDL
+
+
+module CMB {
+
+  interface Out {
+    
+    boolean Ping();
+      
+  };
+  
+
+  interface In {
+
+    void PrintMessage( in string fromwho, in string msg );
+    boolean Ping();
+
+  };
+
+
+  interface Broker {
+
+    // Returns unregistering key
+    unsigned long Register( in string who, in Object obj );
+
+    // Requires an unregistering key
+    boolean Unregister( in string who, in unsigned long key );
+
+    boolean Ping();
+
+    boolean SendMessage( in string who, in string fromwho,
+	in unsigned long key, in string message );
+
+  };
+
+};
+
+#endif

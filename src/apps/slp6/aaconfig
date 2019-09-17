@@ -1,0 +1,9 @@
+net.slpm6.AAHeartBeat=3
+net.slp.SlpPort=427
+net.slp.IPv6Scope=2
+net.slpm6.AAPrefix=2001:708:310:52
+net.slpm6.Mcast=1
+net.slpm6.AAProxy=1
+net.slpm6.RFC3082=1
+net.slpm6.RFC3528=1
+net.slpm6.RFC3832=1

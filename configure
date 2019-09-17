@@ -1,0 +1,191 @@
+#!/bin/sh
+
+top_dir=`pwd`
+
+# Check that we do have the source
+if test ! -f ${top_dir}/src/configure; then
+	echo "Cannot find the source in the ./src directory."
+	exit 1
+fi
+
+force=no
+install=no
+make=no
+build=build
+parameters=
+while test x"$*" != x""
+do
+    case $1 in
+	-suncc)
+	    # Normal ld should work well but it is automake that takes
+	    # -library=.. flag inside the list of to be included libraries
+	    # because of -l-beginning so, at this time you must use CC
+	    # as a linker because it accepts -library=-flag.
+	    ld=CC
+	    cxx=CC
+	    cc=cc
+	    ;;
+	-icc)
+	    cxx=icc
+	    cc=icc
+	    ;;
+	-make)
+	    make=yes
+	    ;;
+	-install)
+	    install=yes
+	    ;;
+	-cxxflags)
+	    shift
+	    cflags=$1
+	    ;;
+	-l)
+	    shift
+	    ld=$1
+	    ;;
+	-c)
+	    shift
+	    cc=$1
+	    ;;
+	-C)
+	    shift
+	    cxx=$1
+	    ;;
+	-d)
+	    shift
+	    build=$1
+	    ;;
+	-f)
+	    force=yes
+	    ;;
+	-h)
+	    echo ""
+	    echo "Usage: configure [-C C++-compiler] [-c compiler] [-d build-directory] [-h] [--help]"
+            echo "                 [-suncc] [-icc] [-make] [-install] [autoconf flags]"
+	    echo ""
+	    echo "    -C C++-compiler     set C++-compiler to use in compiling"
+	    echo "    -c C-compiler       set C-compiler to use in compiling"
+	    echo "    -l linker           set linker to use"
+	    echo "    -suncc              use Sun WorkShop(TM) compiler"
+	    echo "                          (same as -c cc -C CC -l CC)"
+	    echo "    -icc                use Intel(R) C++ compiler"
+	    echo "                          (same as -c icc -C icc)"
+	    echo "    -make               run make after configuring"
+	    echo "    -install            install DOORS after make"
+	    echo "    -cxxflags flags     use given CXXFLAGS"
+	    echo "    -d build-directory  set the build directory"
+	    echo "    -f                  force e.g. writing to an existing directory"
+	    echo "    -h                  this help"
+	    echo "    --help              show the autoconf flags"
+	    echo "    configure flags     flags for the autoconf script"
+	    echo ""
+	    echo "Note: When using a native compiler, you MAY need to set both"
+	    echo "      C and C++ compilers if you also have gcc in your path."
+	    echo "      Linker MAY be needed to be the same as the compiler."
+	    echo ""
+	    exit 0
+	    ;;
+	--help)
+	    ${top_dir}/src/configure --help
+	    exit 0
+	    ;;
+	*)
+	    parameters="$parameters $1"
+	    ;;
+    esac
+    shift
+done
+
+# Check that we do have all the required tools
+echo "Checking for the required programs..."
+type touch || exit 1
+type mkdir || exit 1
+type rm || exit 1
+type cd || exit 1
+type pwd || exit 1
+
+# Touch autoconf files to make sure that bootstrapping is not 
+# done during compilation. 
+find ./src -name Makefile.am -print | xargs touch
+touch ./src/configure.ac ./src/aclocal.m4 ./src/configure ./src/include/doors/doorsconf.h.in
+find ./src -name Makefile.in -print | xargs touch
+touch .touched
+
+# Create include directory and symbolic links
+# Check if build directory exists
+if test -d ${top_dir}/${build}; then
+    if test x"${force}" != xyes; then
+	echo "Directory ./${build} exists. Remove it or specify another with -d <directory>."
+	exit 1
+    else
+	rm -rf ./${build}
+    fi
+fi
+# Make the build directory
+mkdir ${top_dir}/${build} || exit 1
+
+# Issue
+echo ""
+echo "Welcome to DOORS."
+echo ""
+
+# Run configure
+# This is a MacOSX hack. We check if the building system is MacOSX
+# and in that case ltmain.sh is replaced with a version that works
+# on MacOSX (ltmain-macosx.sh).
+#system=`./src/config.guess`
+#case $system in
+#    powerpc-apple-darwin*)
+#	echo "This is a MacOS 10.x system. Replacing ltmain.sh with ltmain-macosx.sh"
+#	mv ./src/ltmain.sh ./src/ltmain-original.sh
+#	cp ./src/ltmain-macosx.sh ./src/ltmain.sh
+#	;;
+#esac
+# Go to build directory
+cd  ${top_dir}/${build}
+# Remove this file to enable configure to run in several directories
+rm -f ${top_dir}/src/config.status
+# Make
+echo "Running configure ${parameters}"
+if test x"$cxx" != x""; then
+    echo "      C++-compiler: $cxx"
+fi
+if test x"$cc" != x""; then
+    echo "        C-compiler: $cc"
+fi
+if test x"$ld" != x""; then
+    echo "            Linker: $ld"
+fi
+if test x"$cflags" != x""; then
+    echo "            CFLAGS: $cflags"
+fi
+echo "   Build directory: ./$build"
+echo ""
+CXXFLAGS=${cflags} LD=${ld} CC=${cc} CXX=${cxx} ${top_dir}/src/configure ${parameters}
+# Go back to top directory
+cd ${top_dir}
+
+echo ""
+echo ""
+echo " DOORS configure stage complete."
+echo " Now type 'cd ./$build'"
+echo " To compile DOORS, type 'gmake'"
+echo " To install DOORS, type 'gmake install'"
+echo ""
+
+# Run make
+# Go to build directory
+cd ${top_dir}/${build}
+if test x"${make}" != xno; then
+    echo " Compiling DOORS"
+    echo ""
+    gmake || make || exit 1
+fi
+if test x"${install}" != xno; then
+    echo " Installing DOORS"
+    echo "" 
+    gmake install || make install || exit 1
+fi
+# Afterglow
+
+exit 0

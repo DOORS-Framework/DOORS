@@ -1,0 +1,73 @@
+Copyright 2000 
+  Telecoms Lab, Tampere University of Technology.  All rights reserved.
+ 
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY TAMPERE UNIVERSITY OF TECHNOLOGY AND 
+CONTRIBUTORS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE UNIVERSITY 
+OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+With udp_demo, you can send UDP datagrams to another host and port. 
+You can send a file or allow the program to generate random data. 
+
+The same program acts as a sender and a receiver. If destination host
+is given, send mode is assumed. Otherwise, the program is put to
+receive mode. 
+
+In send mode, a user can choose how many times a file or random data
+frame is sent with flag '-l'. If zero times is given, it is interpreted
+as infinite loop and the user can stop sending with Ctrl-C. If input
+filename is given with flag '-i', that file is sent instead of random
+data. Looping policy is different for file. With command
+
+	udp_demo -ifoo -l5 ...
+
+file 'foo' is sent five (5) times as a whole whatever the frame size is.
+However, command
+
+	udp_demo -l5 -f1000 ...
+
+(without input file) sends five (5) 1000 byte long frames with random
+data.
+
+In receiving mode, that is when output file name is given, the program
+waits for the data coming from predefined port. It is then saved to 
+output file. File "-" is standard out, i.e. giving parameter '-o-' 
+makes udp_demo to print all the received data to the screen. The data
+is printed without any filtering, so it is not recommended if the
+sender throws some binary data (like random data generator does) to
+the receiver.
+
+Here are the flags that are recognized by udp_demo:
+
+	-m <type>	Memory manager type. The default is plain.
+	-f <size>	Frame size. The default is 5000 (bytes).
+	-p <port>	Receiving port. The default is 50000.
+	-q <port>	Destination port. The default is 50001.
+	-o <file>	Filename where to save the received UDP packets.
+	-i <file>	File to be sent as UDP datagrams.
+	-l <loops>	Number of loops. Zero means infinite. The default
+			is to send once.
+	-h <host>	Destination host. Hostname or IP-address.
+
+
+
+Ilkka Karvinen
+Tampere University Of Technology
+Digital Media Institute
+e-mail: ik@cs.tut.fi

@@ -1,0 +1,6 @@
+
+Known Bugs (send to bilhanan@cs.tut.fi)
+---------------------------------------
+
+*  SAP Announcer segfaults when closereq is invoked
+

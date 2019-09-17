@@ -1,0 +1,3 @@
+net.slpm6.AAHeartBeat=3
+net.slp.SlpPort=30427
+net.slp.IPv6Scope=2

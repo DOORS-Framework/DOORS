@@ -1,0 +1,31 @@
+// Generic codec
+// All codecs inherit this base object to make sure that
+// they are compatible as CORBA objects.
+//
+// Codecs usually require some kind of initialisation when
+// constructed or you should provide some encoding parameters
+// before calling encode(). These functions are so codec-spesific
+// that they should be declared and implemented in the subclasses.
+
+exception NotImplemented {};
+exception InvalidFeed {string reason;};
+
+interface Codec
+{
+  // Encode one frame
+  boolean encode(in any feed, out any result)
+    raises (NotImplemented,InvalidFeed);
+
+  // Decode one frame
+  boolean decode(in any feed, out any result)
+    raises (NotImplemented,InvalidFeed);
+
+  // Reencode one frame. Feed and result are of the same
+  // type of encoding format (e.g. MPEG 1.0 layer 3), but
+  // the result has some different characteristics like
+  // different bitrate etc. It is up to the subclass 
+  // implementor to choose a way to provide these new
+  // parameters to the encoder.
+  boolean reencode(in any feed, out any result)
+    raises (NotImplemented,InvalidFeed);
+};

@@ -1,0 +1,314 @@
+// Editor-info: -*- C++ -*-
+
+//  Copyright 2000 
+//  	Telecoms Lab, Tampere University of Technology.  All rights reserved.
+
+//  Redistribution and use in source and binary forms, with or without
+//  modification, are permitted provided that the following conditions
+//  are met:
+//  1. Redistributions of source code must retain the above copyright
+//     notice, this list of conditions and the following disclaimer.
+//  2. Redistributions in binary form must reproduce the above copyright
+//     notice, this list of conditions and the following disclaimer in the
+//     documentation and/or other materials provided with the distribution.
+//
+//  THIS SOFTWARE IS PROVIDED BY TAMPERE UNIVERSITY OF TECHNOLOGY AND 
+//  CONTRIBUTORS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+//  BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+//  FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE UNIVERSITY 
+//  OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+//  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+//  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+//  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+
+//===========================================================================
+//File:     altbittask.C
+//Date:     13.3.2003
+//Desc:     Implementation for alternating bit task
+//Author:   Ilkka Karvinen, TTY/DMI
+//===========================================================================
+
+/*
+$Log: altbittask.C,v $
+Revision 1.3  2004/02/01 23:15:30  bilhanan
+bugfixes, cvs diff for details on individual files.
+
+Revision 1.2  2003/08/24 22:27:48  bilhanan
+- removed all "delete msg" statements, use function return value for that.
+- const char* -> std::string
+- #include "..." -> #include <doors/...>
+
+Revision 1.1  2003/07/02 14:37:27  ik
+Moved to protocol section.
+
+Revision 1.1  2003/07/02 11:27:52  ik
+Initial revision.
+
+*/
+
+#include <doors/altbittask.h>
+
+AltbitTask :: AltbitTask (std::string name, Scheduler* s, AltbitTaskSM* sm, InetAddr addr)
+  : PTask(name, s, sm), 
+    up(this),           // Connect this task to outgoing SAP
+    peer(this, &down),  // Peer this task to other Altbit peer using 'down' UDP
+    down(this, &peer),  // Connect the peer to UDP task
+    altbit_(0),         // Initially altbit flag is down
+    retries_(0),        // Number of send retries
+    addr_(addr),        // Destination address
+    sent_data_(0),      // Used for retries
+    timer_ (this, OTime (15))  // Send timer
+{
+
+  // Set these
+  STATIC_SYMBOL(up, this);
+  STATIC_SYMBOL(down, this);
+  STATIC_SYMBOL(peer, this);
+  // These are optional but give additional information to LEMon & DEMon
+  STATIC_SYMBOL(altbit_, this);
+  STATIC_SYMBOL(retries_, this);
+  STATIC_SYMBOL(timer_, this);
+}
+
+AltbitTask :: ~AltbitTask() {
+
+  // Delete symbols from the hierarchy
+  DELETE_SYMBOL(&up);
+  DELETE_SYMBOL(&down);
+  DELETE_SYMBOL(&peer);
+  DELETE_SYMBOL(&altbit_);
+  DELETE_SYMBOL(&retries_);
+  DELETE_SYMBOL(&timer_);
+}
+
+void AltbitTask :: sendACK (int altbit) {
+
+  // Create message for Altbit peer
+  AltbitPeer :: ACK *ack =  (AltbitPeer :: ACK *) peer.create (AltbitPeer :: ack);
+
+  if (!ack) {
+    return;
+  }
+
+  ack->altbit = altbit;
+
+  // Destination address
+  ack->addr = addr_;
+
+  peer.putMessage (ack);
+
+}
+
+void AltbitTask :: sendDATA (char c) {
+
+  // Create message for Altbit peer
+  AltbitPeer :: DATA *data = (AltbitPeer :: DATA *) peer.create (AltbitPeer :: data);
+
+  if (!data) {
+    return;
+  }
+
+  // Save the alternating bit
+  data->altbit = altbit_;
+
+  // Destination address
+  data->addr = addr_;
+
+  // And finally the data
+  data->payload = c;
+
+  // Reset timer
+  timer_.start ();
+
+  // Save data if needed for retry
+  sent_data_ = c;
+
+  // Send data to the peer
+  peer.putMessage (data);
+}
+
+void AltbitTask :: receiveDATA (Message* msg) {
+
+  AltbitPeer :: DATA *peer_msg = (AltbitPeer :: DATA *) msg;
+  
+  // Create a new message for the user task with the data
+  AltbitSAP :: Data* data = (AltbitSAP :: Data *) up.create (AltbitSAP :: data);
+  data->srcIP = peer_msg->addr;
+  data->payload = peer_msg->payload; // The 'data' is one character from a string
+  data->altbit = peer_msg->altbit;
+
+  // Post the message to the user
+  up.putMessage (data);
+}
+
+void AltbitTask :: receiveACK (Message* msg) {
+
+  int altbit = 0;
+
+  AltbitPeer :: ACK *ack = (AltbitPeer :: ACK *) msg;
+
+  // Create a new message for the user task with the altbit
+  if (ack->altbit) {
+    AltbitSAP :: Ack1* ack = (AltbitSAP :: Ack1 *) up.create (AltbitSAP :: ack1);
+    altbit = 1;
+    up.putMessage (ack);
+  } else {
+    AltbitSAP :: Ack0* ack = (AltbitSAP :: Ack0 *) up.create (AltbitSAP :: ack0);
+    altbit = 0;
+    up.putMessage (ack);
+  }
+
+  // Acknowledge packet received from a peer. Take actions according to
+  // the altbit.
+  // If the altbit flag received in the ACK packet is the same
+  // as in the previous DATA packet, send a new DATA packet and flip the flag.
+  // If the string is empty, send a packet with 'EOT' (null character) and
+  // return to idle state.
+  if (ack->altbit == altbit_) {
+    altbit_ = (altbit_ == 0) ? 1 : 0; // Flip the flag
+    if (data_.length() == 0) {
+      // Send 'EOT' packet to the other peer
+      sendDATA(0);
+      // Go back to idle state and reset the flags
+      retries_ = 0;
+      altbit_ = 0;
+      state = AltbitTaskSM::Idle;
+    } else {
+      // Valid ACK received so reset the retry count
+      retries_ = 0;
+      // Send a new packet and continue waiting
+      sendDATA (data_.getFirst());
+    }
+  } // else ignore the packet and keep on waiting
+
+}
+
+//
+// **************** Idle state ****************
+//
+
+bool AltbitTask :: idle_Send (Message* msg) {
+
+  AltbitSAP :: Send *send = (AltbitSAP :: Send *) msg;
+  
+  // Check for data sanity
+  if (send->data.length() == 0) {
+    return false;
+  }
+
+  // Reset the flags
+  altbit_ = 0;
+  retries_ = 0;
+
+  // Save the data
+  data_ = send->data;
+
+  // Get first octet from the frame and send it. Function getFirst()
+  // removes the octet and moves the pointer to the next octet.
+  sendDATA (data_.getFirst());
+
+  // Move to wait state
+  state = AltbitTaskSM::Wait;
+  
+  return false;
+}
+
+bool AltbitTask :: idle_Default (Message* msg) { 
+
+  // just drop nessage
+  return false; 
+}
+
+bool AltbitTask :: idle_Ack (Message* msg) {
+
+  AltbitSAP :: Ack *ack = (AltbitSAP :: Ack *) msg;
+
+  sendACK(ack->altbit);
+
+  return false;
+}
+
+bool AltbitTask :: idle_DATA(Message* msg) {
+
+  receiveDATA(msg);
+
+  return false;
+}
+
+bool AltbitTask :: idle_ACK(Message* msg) {
+
+  // ACK received when idle; do nothing
+
+  return false;
+}
+
+//
+// **************** Wait state ****************
+//
+
+bool AltbitTask :: wait_Default (Message* msg) { 
+
+  // just drop nessage
+  return false; 
+}
+
+bool AltbitTask :: wait_Send(Message* msg) {
+
+  // Send message received from the 'upper task' during the wait state.
+  // Append this data to the end of the data frame.
+
+  AltbitSAP :: Send *send = (AltbitSAP :: Send *) msg;
+
+  data_.combine(send->data);
+
+  return false;
+}
+
+bool AltbitTask :: wait_Ack(Message* msg) {
+
+  AltbitSAP :: Ack *ack = (AltbitSAP :: Ack *) msg;
+
+  sendACK(ack->altbit);
+
+  return false;
+}
+
+bool AltbitTask :: wait_ACK(Message* msg) {
+
+  receiveACK(msg);
+
+  return false;
+}
+
+bool AltbitTask :: wait_DATA(Message* msg) {
+
+  // Incoming data from a peer during Wait state. Identical to idle_DATA;
+  // just grab the data and push it to the upper state.
+
+  receiveDATA(msg);
+
+  return false;
+}
+
+bool AltbitTask :: wait_Timeout(Message* msg) {
+
+  // Increase the retry count
+  retries_++;
+  
+  if (retries_ > MAX_RETRIES) {
+    // Give up; reset the attributes and go back to idle state
+    data_.destroy();
+    retries_ = 0;
+    altbit_ = 0;
+    state = AltbitTaskSM::Idle;
+  } else {
+    sendDATA(sent_data_);
+  }
+
+  return false;
+}
+
+
+

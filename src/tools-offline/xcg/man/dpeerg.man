@@ -1,0 +1,166 @@
+.\"  Copyright 2001
+.\"      Telecoms Lab, Tampere University of Technology.  All rights reserved.
+
+.\"  Redistribution and use in source and binary forms, with or without
+.\"  modification, are permitted provided that the following conditions
+.\"  are met:
+.\"  1. Redistributions of source code must retain the above copyright
+.\"     notice, this list of conditions and the following disclaimer.
+.\"  2. Redistributions in binary form must reproduce the above copyright
+.\"     notice, this list of conditions and the following disclaimer in the
+.\"     documentation and/or other materials provided with the distribution.
+.\"
+.\"  THIS SOFTWARE IS PROVIDED BY TAMPERE UNIVERSITY OF TECHNOLOGY AND 
+.\"  CONTRIBUTORS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+.\"  BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+.\"  FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE UNIVERSITY
+.\"  OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+.\"  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+.\"  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+.\"  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+.\"  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+.\"  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+.\"  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.\"  $Log: dpeerg.man,v $
+.\"  Revision 1.1  2002/08/23 06:19:42  hartmanj
+.\"  Initial entry
+.\"
+.\"
+
+.TH DPEERG 1 DOORS
+
+.SH NAME
+dpeerg \- DOORS Peer generator
+
+.SH SYNOPSIS
+.B dpeerg
+[
+.I options
+|
+.I xmlfile
+]
+
+.SH DESCRIPTION
+.I dpeerg
+creates Peer and PDU C++-classes from XML definitions.
+A peer represents an abstract connection between the two parts
+of communication. One example would be two TCP tasks communicating
+with each other. Actually all communication passes down in the
+protocol stack, but this can be hidden from the user by using
+the peer interface.
+.I The DOORS Peer Generator
+generates a peer class, which name is specified in the XML input
+file. The generator also produces a set of PDU classes which are
+also specified with XML.
+
+.SH ARGUMENTS
+.TP
+.IB xmlfile
+.br
+The XML file containing your XML definition for the peer interface.
+The 
+.TP
+.B \-\-help
+.br
+Display a help screen and quit.
+
+.TP
+.B \-\-version 
+.br
+Display version information and quit.
+
+.TP
+.B \-\-nomacros
+Suppress the generation of STATIC_SYMBOL, DYNAMIC_SYMBOL and DELETE_SYMBOL
+macros inside the generated files.
+
+.TP
+.B \-\-no\-hhfile
+.br
+No header file is generated. This option overrides the
+.I \-\-hh\-file <filename>
+option.
+
+.TP
+.B \-\-no\-ifile
+.br
+No implementation file is generated. This option overrides the
+.I \-\-i\-file <filename>
+option.
+
+.TP
+.B \-\-i\-file <filename>
+.br
+Print the implementation in the specified file. No suffixes
+are added and if the file already exists and we have sufficient
+credentials, the file is
+.B overwritten
+by the generator without any confirmation from the user.
+
+.TP
+.B \-\-hh\-file <filename>
+.br
+Print the header definitions in the specified file. No suffixes
+are added and if the file already exists and we have sufficient
+credentials, the file is
+.B overwritten
+by the generator without any confirmation from the user.
+
+.TP
+.B \-\-i\-suffix <implementation file suffix>
+.br
+The implementation is written in a file with a suffix
+given in this option. The first part of the file name is derived
+from the XML file's name.
+
+.TP
+.B \-\-hh\-suffix <header file suffix>
+.br
+The header information is written in a file with a suffix
+given in this option. The first part of the file nameis derived
+from the XML file's name.
+
+.SH EXAMPLES
+Here is an example XML definition for a peer interface.
+
+<?xml version="1.0"?>
+.br
+<Peer Name="ExamplePeer"
+.br
+     HIncludeFiles="ownheader.h, owndefs.h"
+.br
+     IIncludeFiles="">
+.br
+
+  <Message Name="PDU1">
+    <Field>int msgid</Field>
+    <Field>char flags</Field>
+    <Field>Frame data</Field>
+  </Message>
+
+  <Message Name="PDU2">
+    <Field>int msgid</Field>
+    <Field>char flags</Field>
+    <Field>int crcsum</Field>
+    <Field>Frame data</Field>
+  </Message>
+.br
+
+</Peer>
+.br
+
+Comments can be added almost anywhere in the XML file and they are ignored and
+not copied to the generated files. No support for inserting comments in the
+generated files yet exists.
+
+.SH SEE ALSO
+dsapg(1), dsmg(1), xcg(1), DOORS(1)
+
+.SH URL
+Home page of the DOORS project is currently at
+.I https://doors.atm.tut.fi/.
+
+.SH AUTHORS
+The DOORS XML Code Generators were created by Joona Hartman and Petri
+Järvinen with big help from Bilhanan Silverajan.

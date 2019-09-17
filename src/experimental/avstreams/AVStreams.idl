@@ -1,0 +1,120 @@
+#include "PropertyService.idl"
+
+module AVStreams{
+
+struct QoS{
+	string QoSType;
+	PropertyService::Properties QoSParams;
+};
+
+typedef sequence<QoS> streamQoS;
+
+typedef sequence<string> flowSpec;
+
+typedef sequence<string> protocolSpec;
+
+typedef sequence<octet> key;
+
+// protocol names registered by OMG.
+// e.g., TCP, UDP, AAL5, IPX, RTP
+
+
+typedef PropertyService::Property streamEvent;
+exception notSupported {};
+exception PropertyException {};
+// An flow protocol related error
+exception FPError { string flow_name; };
+
+exception streamOpFailed{
+	string reason;};
+exception streamOpDenied{
+	string reason;};
+exception noSuchFlow{};
+exception QoSRequestFailed{
+	string reason;};
+
+//interface Basic_StreamCtrl : PropertyService::PropertySet {
+interface Basic_StreamCtrl {
+
+	// Empty flowSpec => apply operation to all flows
+	void stop(in flowSpec the_spec) raises (noSuchFlow);
+	void start(in flowSpec the_spec) raises (noSuchFlow);
+	void destroy(in flowSpec the_spec) raises (noSuchFlow);
+
+	boolean modify_QoS(inout streamQoS new_qos,
+		in flowSpec the_spec)
+		raises (noSuchFlow, QoSRequestFailed);
+
+	// Called by StreamEndPoint when something goes wrong
+	// with a flow
+	oneway void push_event(
+			in streamEvent the_event);
+
+};
+
+interface StreamEndPoint;
+interface StreamEndPoint_A;
+interface StreamEndPoint_B;
+
+interface StreamCtrl : Basic_StreamCtrl {
+
+	boolean bind(in StreamEndPoint_A a_party,
+			in StreamEndPoint_B b_party,
+			inout streamQoS the_qos,
+			in flowSpec the_flows)
+			raises (streamOpFailed, noSuchFlow, QoSRequestFailed);
+
+	void unbind_party(in StreamEndPoint the_ep,
+			in flowSpec the_spec)
+			raises (streamOpFailed, noSuchFlow);
+
+	void unbind()
+			raises (streamOpFailed);
+};
+
+//interface StreamEndPoint : PropertyService::PropertySet{
+interface StreamEndPoint {
+
+	void stop(in flowSpec the_spec) raises (noSuchFlow);
+	void start(in flowSpec the_spec) raises (noSuchFlow);
+	void destroy(in flowSpec the_spec) raises (noSuchFlow);
+
+	boolean connect(in StreamEndPoint responder,
+			inout streamQoS qos_spec,
+			in flowSpec the_spec)
+			raises (noSuchFlow, QoSRequestFailed, streamOpFailed);
+
+	boolean request_connection(
+			in StreamEndPoint initiator,
+			in boolean is_mcast,
+			inout streamQoS qos,
+			inout flowSpec the_spec)
+			raises (streamOpDenied, noSuchFlow,
+				QoSRequestFailed, FPError);
+
+	boolean modify_QoS(inout streamQoS new_qos,
+			in flowSpec the_flows)
+			raises (noSuchFlow, QoSRequestFailed);
+
+	void disconnect(in flowSpec the_spec)
+			raises (noSuchFlow, streamOpFailed);
+
+};
+
+interface StreamEndPoint_A : StreamEndPoint{
+
+	boolean multiconnect(inout streamQoS the_qos,
+			inout flowSpec the_spec)
+			raises (noSuchFlow, QoSRequestFailed, streamOpFailed);
+};
+
+interface StreamEndPoint_B : StreamEndPoint {
+
+	boolean multiconnect(inout streamQoS the_qos,
+			inout flowSpec the_spec)
+			raises (streamOpFailed, noSuchFlow,
+				QoSRequestFailed, FPError);
+};
+
+};
+

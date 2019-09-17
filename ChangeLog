@@ -1,0 +1,193 @@
+25.8.99
+	-Extracted OVOPS3.1 package into framework/ and renamed DOORS v0.1
+	-Renamed omm/ subdir to omm.unneeded/
+
+26.8.99
+	-Converted I/O Handler to use singleton.
+	-Modified handler.h/C and rrsched.h/C, osched.h/C, now scheduler
+	launches I/O Handler transparently.
+	-Added sol_sc4.cf.dyn.tmpl into gbuild/ directory
+
+27.8.99
+	-Collapsed RRScheduler into Scheduler class. Removed
+	ocore/rrsched.*
+	-Renamed asn1l/ to asn1l.unneeded/
+
+
+02.9.99
+        -Removed asn1l.unneeded from base/
+	-updated gbuild/ovops.mk to build only base and necessary files
+	- gbuild/ovops.mk renamed to gbuild/doors.mk
+	- gbuild/doors.mk now deletes all built subdirs in <clean> rule
+	-renamed ovops.awk to doors.awk
+	-renamed ovops.cf.tmpl to doors.cf.tmpl
+
+	
+03.9.99
+	-Changed a whole bunch of "#include <ovops/.." to point to
+	"<doors/.."
+	-added -compat to sol_sc5.cf to preserve backwards CC compatibility
+	-removed gsm.mk and tcap.mk from gbuild/ directory
+	-cleaned up base/ by removing *.*~ etc.
+	-Added BSD-style COPYRIGHT (not in effect yet)
+	-moved <clean> rule for built dirs from doors.mk to basic.mk
+
+23.9.99
+	-Copied doors/bill/corba_modules/core_current into
+	framework/doors0.1/corba_modules/filepool
+	-Created DII, DSI, ORB, POA directories
+	-Started symlinking files from filepool dir into these directories
+	-Removed tool dir and added tools dir which contains smg, pdug and
+	sapg
+	-Renamed compo to protocols and restructured subdirs
+	
+02.10.99
+	-Created separate tools dir outside framework directory for
+	symlinking from within framework/doors0.1/tools. Makes it
+	easier to avoid cvs'ing binaries.
+
+03.10.99
+	-Merged rtp,rtcp and mpeg stuff in. rttask.h/C goes into base/ptb
+	subdirectory. All others are divided into protocols/RTP,
+	protocols/RTCP and demo/mp3_demo
+
+
+	-Checked in first cvs tree into garuda.atm.tut.fi as follows:
+	cvs import -m "DOORS Development Sources" doors-devel ttkk start
+	
+	-Remote CVS checking-in with ssh works, if this comment appears.
+
+20.12.99
+	-We need a CVS system which is able to preserve the integrity of 
+	symbolic links and not just replace the symlinks with real files. 
+	Till then, ignore all files in the subdirectories under 
+	corba_modules/ *Except* filepool
+
+05.01.00
+	-CVS commit notifier now works via email remotely.
+	-Scheduler modified to use singleton.
+
+12.01.00
+	-IIOP protocols have now been added under protocols/
+
+07.04.00
+	-Licence changes for DOORS: GPL -> BSD. Thanks, LUT!
+
+13.07.00
+	-Memory manager reintroduced under subdir base/dmm. Since it's
+	a userlevel new() operator, it shouldn't conflict if it's being
+	used together with a garbage collector which uses the overloaded
+	new() operator.
+
+07.01.01
+	-added dii_demo subdir into demo/, 
+	- updated building dii_demo in gbuild/doors.mk + 3 new rules 
+	now for cleaning: base-clean, proto-clean and corba-clean.
+
+18.04.01
+	-added DOORS 0.2, experimental autoconf style build 
+
+08.06.01
+       -cleanup, CVS Log keyword added, full licence clauses into all
+       files.
+
+20.09.01
+	-merged sources from the summer cvs repository into DOORS main
+	repository.
+	-renamed LDAPProject/ to contrib/
+	-added jjlaakso and hartmanj into commit notifier. 
+	-welcome to The Code, gentlemen!
+
+12.12.01
+       -added tools directory to src and demon under src/tools/demon.
+
+23.01.02
+	-added a new "experimental" directory for code that isn't ready yet
+	for merging into main tree. Currently contains 2 subdirectories,
+	for IIOP and IIOP connection manager.
+
+01.03.02
+	-removed IIOP connection manager and replaced with a more generic
+	Transport Layer Connection Multiplexer. Caches, supports timeouts
+	and does basic connection management.
+
+19.03.02
+	-garuda suffered a system motherboard and data loss last week.
+	CVS repository was restored from backups and synched against
+	working directories. Back to business.
+
+	-CVS repository ready for DOORS Workshop 2.
+	
+03.05.02
+	-Directly as a result of the workshop, DOORS files, modules and 
+	directories were restructured, renamed and revamped, resulting 
+	in a complete overhaul of the main CVS repository.
+	-DOORS sources reimported with release tag doors-0_3-pre7 and 
+	vendor tag TTKK.
+
+07.05.02
+	-History from previous ChangeLogs merged into 1 file now.
+
+13.05.02
+	-To preserve directory semantics, several files and subdirectories
+	were renamed and restructured. Additions to src/experimental/,
+	src/apps/, modifications to src/corba/ and src/tools/demon/
+	All relevant Makefile.am files are not yet fixed.
+
+15.06.02
+	-Added some IPv6 components: InetAddr6, UdpSockConn6, Udp6Task and
+	a version of udpdemo (udp6demo) that makes use of these.
+	-UdpSockConn and UdpSockConn6 are modified to handle multicast
+	addresses. If a multicast address is given, they emit join
+	to the multicast group and provide arguments for manipulating
+	TTL (hoplimit) and loopback features of multicast packets.
+	-mcudp.{h,C} is renamed to rtpudptask.{h,C} and multicast code
+	is removed from there.
+
+17.06.02
+	- tools/ subdir is now split into tools-online/ and tools-offline/
+	- XML code generators added under tools-offline/
+	- experimental/tranmux moved to protocols/tranmux
+	- SAP protocol and app added
+
+25.06.02
+	-added kalliosa into commit notifier. 
+	-welcome to The Code!
+
+22.07.02
+	-cvs logs now sent to email accounts in garuda
+	-DOORS Workshop 3 starts
+
+23.07.02
+	-all old-skool OVOPS type code generated stuff now replaced, in favour
+	of xcg.
+	-OdBoolean types inherited from OVOPS also now replaced by
+	standard C++ bool type.
+	-building system now limits build system to only 'gmake', and other
+	make systems (eg in *BSD) do not handle file dependency with libtool.
+	-DOORS version 0.3 released. CVS tag now at doors-0_3
+
+14.08.02
+	- ONS macros finally renamed to something more sensible: 
+	ONS_MT_ -> _MT_, ONS_CF_ -> _CF_, 
+	ONS_LOG_ -> _LOG_, ONS_ER_ -> _ER_, 
+	all other ONS_ (eg ONS_DEBUG, ONS_FAULT, etc) -> _DOORS_ 
+	
+19.08.02
+	- Added protocols/tranmux
+17.04.03
+        - Moved Slp6 from experimental to protocols
+
+04.06.03
+	-DOORS version 0.4 released. CVS tag now at doors-0_4
+	
+10.07.03
+	-DOORS version 0.5, release tag doors-0_5
+
+14.11.03
+	-DOORS version 0.6, release tag doors-0_6
+	 Feature improvements include:
+	  * Support for IPv4/6 sap announcer
+	  * Unicast/Broadcast/Selective Broadcast message support
+	  * Various bugfixes in PTB and LeMon
+	

@@ -1,0 +1,175 @@
+//
+//  Copyright 2000 
+//      Telecoms Lab, Tampere University of Technology.  All rights reserved.
+//
+//  Redistribution and use in source and binary forms, with or without
+//  modification, are permitted provided that the following conditions
+//  are met:
+//  1. Redistributions of source code must retain the above copyright
+//     notice, this list of conditions and the following disclaimer.
+//  2. Redistributions in binary form must reproduce the above copyright
+//     notice, this list of conditions and the following disclaimer in the
+//     documentation and/or other materials provided with the distribution.
+//
+//
+//  THIS SOFTWARE IS PROVIDED BY TAMPERE UNIVERSITY OF TECHNOLOGY AND 
+//  CONTRIBUTORS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+//  BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+//  FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE UNIVERSITY 
+//  OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+//  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+//  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+//  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+//  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+//  Subject: DEMON IDL
+//  Author:  Ilkka Karvinen, TTKK/DMI
+
+
+module Demon {
+  
+  typedef unsigned long Task; // Used to save flags if needed
+  typedef long State;
+  typedef unsigned long   Index; // Symbol index
+  typedef sequence<octet> Frame;
+  typedef sequence<char>  UnixAddr;
+  typedef unsigned long   InetAddr4;
+  typedef sequence<unsigned long> InetAddr6;
+
+  // Timestamp taken from UNIX timeval where seconds indicates the time
+  // of day in seconds and useconds fraction of one second in microseconds.
+  struct TimeStamp {
+    long seconds;
+    long useconds;
+  };
+  
+  struct Timer {
+    boolean is_ticking;
+    TimeStamp delta;
+    TimeStamp initial;
+  };
+  
+  enum SymbolType {
+    stSystem, stOTask, stPTask, stEventTask, stEventTaskBefore, 
+    stEventTaskAfter, stLinkList, stScheduler, stDebugScheduler, stEnvTask, 
+    stPort, stTimer, stIface, stPeer, stMessage, stUnixAddr, stInetAddr, 
+    stInetAddr4, stInetAddr6, stBoolean, stSint8, stSint16, stSint32, 
+    stUint8, stUint16, stUint32, stLoad, stChar, stFrame, stMemoryManager, 
+    stState, stInt
+  };
+  
+  typedef sequence<string> MessageNameList;
+
+  struct Filter {
+    boolean enabled;
+    Index index;
+    sequence<Filter> children;
+  };
+
+  typedef sequence<Filter> FilterList;
+
+  struct Port {
+    string parentname;
+    string otherport;
+  };
+
+  struct Iface {
+    string parentname;
+    string otherport;
+    MessageNameList messages;
+  };
+
+  // A special kind of structure to hold list of possible messages 
+  // Used when sending the whole system structure
+  struct SystemConnection {
+    Port src;
+    Port dest;
+    MessageNameList messagelist; // List of messages from source to destination
+  };
+  
+  struct Peer {
+    string taskname;
+    SymbolType tasktype;
+    string portname;
+    SymbolType porttype;
+  };
+  
+  struct Message {
+    string sourcename;
+    Port source;
+    string targetname;
+    Port target;
+  };
+  
+  union SymbolValue switch (SymbolType) {
+  case stSystem :
+    long system; // for debugging purpose
+  case stState :
+    State state;
+  case stPort :
+    Port port;
+  case stIface :
+    Iface iface;
+  case stTimer :
+    Timer timer;
+  case stPeer :
+    Peer peer;
+  case stMessage :
+    Message message;
+  case stUnixAddr :
+    UnixAddr unixaddr;
+  case stInetAddr :
+    InetAddr4 inetaddr;
+  case stInetAddr4 :
+    InetAddr4 inetaddr4;
+  case stInetAddr6 :
+    InetAddr6 inetaddr6;
+  case stBoolean :
+    boolean boolval;
+  case stSint8 :
+    char sint8;
+  case stSint16 :
+    short sint16;
+  case stSint32 :
+    long sint32;
+  case stUint8 :
+    octet uint8;
+  case stUint16 :
+    unsigned short uint16;
+  case stUint32 :
+    unsigned long uint32;
+  case stChar :
+    string str;
+  case stFrame :
+    Frame frame;
+  case stInt :
+    long intval;
+  case stOTask :
+    Task otask;
+  case stPTask :
+    Task ptask;
+  case stEventTask :
+    Task etask;
+  case stEventTaskBefore :
+    Task etaskbefore;
+  case stEventTaskAfter :
+    Task etaskafter;
+  case stLinkList :
+    long linklist;
+  case stDebugScheduler :
+    long debugsch;
+  };
+
+  struct Symbol {
+    string name;
+    SymbolValue value;
+    Index index;
+    sequence<Symbol> children;
+  };
+
+  typedef sequence<Symbol> SymbolList;
+  typedef sequence<Peer> PeerList;
+
+};

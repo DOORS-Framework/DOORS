@@ -1,0 +1,43 @@
+#include "Codec.idl"
+
+const short MAX_MPEG_BUFFER = 16384;
+const short MPEG_SAMPLE_SIZE = 1152;
+
+enum MPEGversion { MPEG1, MPEG2 };
+enum MPEGmode { stereo, joint_stereo, dual_channel, mono };
+
+typedef short SampleBuffer[2][MPEG_SAMPLE_SIZE];
+typedef octet MpegBuffer[MAX_MPEG_BUFFER];
+
+struct Unencoded {
+  SampleBuffer buffer;
+  long samples;
+};
+
+struct Encoded {
+  MpegBuffer buffer;
+  long length;
+};
+
+struct EncodingParameters
+{
+  MPEGversion version;  /* MPEG1 (1.0) or MPEG2 (2.0) */
+  short layer;          /* 1, 2 or 3 */
+  long bitrate;         /* Bitrate or minimum bitrate for VBR (bps) */
+  long max_bitrate;     /* Maximum bitrate for VBR */
+  short vbr_quality;    /* VBR quality from 0 to 9 */
+  long sfreq;           /* Sampling frequency */
+  MPEGmode mode;        /* Encoding mode */
+  boolean fast_mode;    /* Encode faster (reduced quality) */
+  boolean hi_quality;   /* Make high quality stream */
+  boolean voice_mode;   /* Use voice mode */
+  boolean vbr;          /* Variable bitrate flag */
+};
+
+interface MpegAudioCodec : Codec 
+{
+  // Initialize encoding. This method should be called every time
+  // before a new sample is given to the encoder OR when one needs
+  // to change encoding parameters.
+  boolean init_encoding(in EncodingParameters param);
+};

@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# if changing to new version of autoconf, then also remove ltmain.sh, config.{guess,sub}
+# in addition to the files below, otherwise keep them in src/ before running bootstrap
+
+rm configure install-sh missing mkinstalldirs stamp-h.in include/doors/doorsconf.h.in
+find . -name Makefile.in -print | xargs rm

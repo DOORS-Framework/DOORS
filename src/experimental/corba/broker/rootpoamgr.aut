@@ -1,0 +1,51 @@
+ReadmeFirst: I've intentionally put this comment here. Before you generate code
+copy the existing .h and .C somewhere else first and merge edited code.
+Then comment out these statements.
+
+SM = { 
+	Type = RootPOAManager; 
+
+	HostClass = RootPOA; 
+	HostFile = RootPOA.h; 
+ 
+	Inputs = { 
+		Interface = {
+			Name = up;
+			Type = ServantSAP;
+			Messages = {
+				Data = data
+			};
+		},
+                Interface = { 
+                        Name = down; 
+                        Type = OrbSAP; 
+                        Messages = {
+				Data = data
+                        };
+		},
+		Timers = {
+			Type = TimerMessage;
+		};
+	}; 
+ 
+	States = {
+		HOLDING = {
+			up	: data	    = holding_default,
+			down  	: data      = holding_default
+		},
+		ACTIVE = {
+			up	: data	    = active_default,
+			down  	: data      = active_default
+		},
+		DISCARDING = {
+			TimerMessage	    = discarding_default,
+			up	: data	    = discarding_default,
+			down  	: data      = discarding_default
+		},
+		INACTIVE = {
+			up	: data	    = inactive_default,
+			down  	: data      = inactive_default
+		};
+		
+	}; 
+};                       

@@ -1,0 +1,100 @@
+#include "AVStreams.idl"
+
+struct PlayItem {
+  string fullname;
+};
+
+typedef sequence<string> PlayList;
+
+enum PositionOrigin {
+  AbsolutePosition, RelativePosition, ModuloPosition
+};
+
+enum PositionKey {
+  ByteCount, SampleCount, MediaTime
+};
+
+struct Position {
+  PositionOrigin origin;
+  PositionKey key;
+  long value;
+};
+
+exception InvalidPosition { PositionKey key;};
+exception ItemNotFound{};
+
+interface MpegAudioSource;
+interface MpegAudioSink;
+
+interface MpegAudioCtrl : AVStreams::StreamCtrl
+{
+  // The following methods are added to StreamCtrl
+
+  boolean bind_mpegaudio(in MpegAudioSource a_party,
+	       in MpegAudioSink b_party,
+	       inout AVStreams::streamQoS the_qos,
+	       in AVStreams::flowSpec the_flows)
+    raises (AVStreams::streamOpFailed, 
+	    AVStreams::noSuchFlow, 
+	    AVStreams::QoSRequestFailed);
+
+  void unbind_mpegaudio()
+    raises (AVStreams::streamOpFailed);
+
+  // Rewind the current playing item to the beginning
+  // notSupported is raised if the current item is a stream
+  // that cannot be rewinded.
+  void rewind(in AVStreams::flowSpec the_spec) 
+	raises (AVStreams::noSuchFlow,AVStreams::notSupported);
+
+  // Send again one frame
+  // notSupported is raised if currently multicasting because
+  // packets are not resent to multicast group. Open one unicast
+  // flow for dropped packets. If currently unicasting, the packet
+  // is sent to the same flow and receiver is responsible to
+  // gather resent packets from normal flow according to packet
+  // number.
+  void resend(in AVStreams::flowSpec the_spec, in long packetnum)
+    raises (AVStreams::noSuchFlow,AVStreams::notSupported);
+
+  // Reposition the stream
+  // notSupported is raised if the current item is a stream
+  // that cannot be repositioned.
+  void reposition(in AVStreams::flowSpec the_spec, in Position pos)
+    raises (InvalidPosition,AVStreams::notSupported);
+
+  // Get playing list of this source
+  boolean get_list(out PlayList playlist);
+
+  // Get information of one item
+  boolean get_item(in string item, out PlayItem info);
+
+  void select_item (in string item) raises (ItemNotFound);
+};
+
+interface MpegAudioSource : AVStreams::StreamEndPoint_A 
+{
+  // The following methods are added to StreamEndPoint_A
+
+  void rewind(in AVStreams::flowSpec the_spec) 
+	raises (AVStreams::noSuchFlow,AVStreams::notSupported);
+  void reposition(in AVStreams::flowSpec the_spec, in Position pos)
+    raises (InvalidPosition,AVStreams::notSupported);
+  void resend(in AVStreams::flowSpec the_spec, in long packetnum)
+    raises (AVStreams::noSuchFlow,AVStreams::notSupported);
+
+  // Get playing list of this source
+  boolean get_list(out PlayList playlist);
+
+  // Get information of one item
+  boolean get_item(in string item, out PlayItem info);
+
+  void select_item (in string item) raises (ItemNotFound);
+};
+
+interface MpegAudioSink : AVStreams::StreamEndPoint_B
+{
+  boolean preconnect();
+  boolean postconnect();
+};
+

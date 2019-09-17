@@ -1,0 +1,9 @@
+
+old names:			new names:		oldfilename:		newfilename:
+
+SocketHelperOS			SockHelper		sockhos.h/.C		sockhelper.h/.C
+HeaderedSocketConnectionOS	HSockConn		hsockos.h/.C		hsockconn.h/.C
+SocketHeaderOS			SockHeader		nhdros.h/.C		sockheader.h/.C
+SocketConnectionOS		SockConn		sockcos.h/.C		sockconn.h/.C
+SocketEntityOS			SockEnt			sockeos.h/.C		sockent.h/.C
+UdpSocketConnectionOS		UdpSockConn		usockcos.h/.C		udpsockconn.h/.C

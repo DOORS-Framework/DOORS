@@ -1,0 +1,23 @@
+/Makefile/1.5/Mon Jan 15 12:40:47 2007//
+/agentconn.C/1.3/Mon Jan 15 11:03:19 2007//
+/agentconn.h/1.3/Mon Jan 15 11:03:19 2007//
+/agentconnsm.sm/1.3/Mon Jan 15 11:03:19 2007//
+/movenotifysap.sap/1.1/Mon Jan 15 12:43:10 2007//
+/servicereg.C/1.4/Mon Jan 15 11:03:19 2007//
+/servicereg.h/1.2/Thu Jan 11 11:35:49 2007//
+/serviceregsap.sap/1.2/Mon Jan 15 11:03:19 2007//
+/serviceregsm.sm/1.2/Thu Jan 11 11:35:49 2007//
+/test_logger.C/1.1/Thu Aug 10 15:39:06 2006//
+/test_logger.h/1.1/Thu Aug 10 15:39:06 2006//
+/va.C/1.2/Wed Oct  3 09:06:05 2007//
+/vaconfig/1.2/Fri Feb 23 10:43:10 2007//
+/vaconfigurator.C/1.2/Fri Feb 23 10:43:10 2007//
+/vaconfigurator.h/1.2/Fri Feb 23 10:43:10 2007//
+/vaent.C/1.17/Thu Oct  4 05:41:31 2007//
+/vaent.h/1.8/Thu Oct  4 05:41:31 2007//
+/vaesm.sm/1.3/Tue Oct  2 20:18:52 2007//
+/vasap.sap/1.1/Thu Aug 10 15:39:07 2006//
+/vuaconn.C/1.3/Thu Jan 11 08:08:33 2007//
+/vuaconn.h/1.3/Thu Jan 11 08:08:34 2007//
+/vuaconnsm.sm/1.5/Thu Jan 11 11:35:49 2007//
+D

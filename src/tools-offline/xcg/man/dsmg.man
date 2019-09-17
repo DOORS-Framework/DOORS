@@ -1,0 +1,198 @@
+.\"  Copyright 2001
+.\"      Telecoms Lab, Tampere University of Technology.  All rights reserved.
+
+.\"  Redistribution and use in source and binary forms, with or without
+.\"  modification, are permitted provided that the following conditions
+.\"  are met:
+.\"  1. Redistributions of source code must retain the above copyright
+.\"     notice, this list of conditions and the following disclaimer.
+.\"  2. Redistributions in binary form must reproduce the above copyright
+.\"     notice, this list of conditions and the following disclaimer in the
+.\"     documentation and/or other materials provided with the distribution.
+.\"
+.\"  THIS SOFTWARE IS PROVIDED BY TAMPERE UNIVERSITY OF TECHNOLOGY AND 
+.\"  CONTRIBUTORS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+.\"  BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+.\"  FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE UNIVERSITY
+.\"  OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+.\"  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+.\"  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+.\"  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+.\"  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+.\"  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+.\"  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.\"  $Log: dsmg.man,v $
+.\"  Revision 1.1  2002/08/23 06:19:42  hartmanj
+.\"  Initial entry
+.\"
+.\"
+
+.TH DSMG 1 DOORS
+
+.SH NAME
+dsmg \- DOORS Peer generator
+
+.SH SYNOPSIS
+.B dsmg
+[
+.I options
+|
+.I xmlfile
+]
+
+.SH DESCRIPTION
+.I dsmg
+creates a state machine  from an XML definition.
+The state machine represents the inner workings of a protocol.
+The protocol object can get inputs from various interfaces and
+it executes actions based on the input and state machine's state.
+In the input file of
+.I dsmg
+, the user specifies the states of the state machine, the input's
+that can occur in the specific state and the action that should
+take place when the input comes. Needless to say, the state
+machine can have unlimited amount of states and inputs.
+.P
+The actions that are executed are function calls that return
+a C++ boolean as a result and take one pointer to a Message object
+as argument. The implementations of these functions are then writen
+by the user in a separate file.
+
+.SH ARGUMENTS
+.TP
+.IB xmlfile
+.br
+The XML file containing your XML definition for the peer interface.
+The 
+.TP
+.B \-\-help
+.br
+Display a help screen and quit.
+
+.TP
+.B \-\-version 
+.br
+Display version information and quit.
+
+.TP
+.B \-\-nomacros
+Suppress the generation of STATIC_SYMBOL, DYNAMIC_SYMBOL and DELETE_SYMBOL
+macros inside the generated files.
+
+.TP
+.B \-\-no\-hhfile
+.br
+No header file is generated. This option overrides the
+.I \-\-hh\-file <filename>
+option.
+
+.TP
+.B \-\-no\-ccfile
+.br
+No implementation file is generated. This option overrides the
+.I \-\-cc\-file <filename>
+option.
+
+.TP
+.B \-\-cc\-file <filename>
+.br
+Print the implementation in the specified file. No suffixes
+are added and if the file already exists and we have sufficient
+credentials, the file is
+.B overwritten
+by the generator without any confirmation from the user.
+
+.TP
+.B \-\-hh\-file <filename>
+.br
+Print the header definitions in the specified file. No suffixes
+are added and if the file already exists and we have sufficient
+credentials, the file is
+.B overwritten
+by the generator without any confirmation from the user.
+
+.TP
+.B \-\-cc\-suffix <implementation file suffix>
+.br
+The implementation is written in a file with a suffix
+given in this option. The first part of the file name is derived
+from the XML file's name.
+
+.TP
+.B \-\-hh\-suffix <header file suffix>
+.br
+The header information is written in a file with a suffix
+given in this option. The first part of the file nameis derived
+from the XML file's name.
+
+.SH EXAMPLES
+Here is an example XML definition for a state machine.
+
+<?xml version="1.0"?>
+.br
+<SM Name="ExampleSM" PTask="ExampleTask"
+.br
+     HIncludeFiles="ownheader.h, owndefs.h"
+.br
+     CIncludeFiles="">
+.br
+  <SAP-File Name="example.sap"/>
+
+  <Peer-File Name="example.pdu"/>
+
+  <From ExampleSAP="up"/>
+  <From ExamplePeer="peer"/>
+
+  <State Name="State1" Default="state1_default">
+    <Interface Name="up">
+      <Input Name="UserMsg1">state1_usermsg1</Input>
+    </Interface>
+    <Interface Name="peer">
+      <Input Name="PDU1">state1_pdu1</Input>
+    </Interface>
+  </State>
+
+  <State Name="State2" Default="state2_default">
+    <Interface Name="up">
+      <Input Name="UserMsg1">state2_usermsg2</Input>
+    </Interface>
+    <Timer>
+      state2_timeout
+    <Timer>
+  </State>
+
+  <State Name="State3" Default="state3_default">
+    <Interface Name="peer">
+      <Input Name="PDU2">state2_pdu2</Input>
+    </Interface>
+  </State>
+.br
+
+</SM>
+.br
+
+Comments can be added almost anywhere in the XML file and they are ignored and
+not copied to the generated files. No support for inserting comments in the
+generated files yet exists.
+
+The PTask-attribute in the SM-tag specifies the protocol task to which the
+state machine belongs to (i.e. where the functions specified as actions
+reside). The SAP- and Peer-File elements indicate the SAP- and peer-definitions
+for this protocol. They are used for checking the syntax of the state machine
+definition. In general, the inputs must be valid inputs from the SAP or peer
+interfaces. The generator gives a warning for all inputs that haven't been
+specified in the SAP- or Peer-File. Generation is still carried out, for there
+are protocols that don't fit into the SAP/Peer-abstraction.
+
+.SH SEE ALSO
+dsapg(1), dpeerg(1), xcg(1), DOORS(1)
+
+.SH URL
+Home page of the DOORS project is currently at
+.I https://doors.atm.tut.fi/.
+
+.SH AUTHORS
+.B The DOORS XML Code Generators
+were created by Joona Hartman and Petri
+Järvinen with big help from Bilhanan Silverajan.

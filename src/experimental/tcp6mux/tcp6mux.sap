@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+
+<!--
+  Copyright 2002 
+      Telecoms Lab, Tampere University of Technology.  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+  1. Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+  2. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in the
+     documentation and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY TAMPERE UNIVERSITY OF TECHNOLOGY AND 
+  CONTRIBUTORS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+  BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE UNIVERSITY 
+  OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+  $Log: tcp6mux.sap,v $
+  Revision 1.1  2004/08/18 06:22:16  bilhanan
+  TCP IPv6 multiplexer
+
+
+-->
+
+<SAP Name="Tcp6muxSAP" HIncludeFiles="tcp6muxsapbase.h" CIncludeFiles="doors/inetaddr6.h">
+
+ <User>
+
+  <Message Name="Creq"> <Parent>Tcp6muxSAPBase</Parent>
+   <Field>InetAddr6 addr</Field>
+   <Field>Uint16 ici</Field>  
+		 <!-- ici == Interface control information, 
+		 which is upper layer data -->
+  </Message>
+
+  <Message Name="Cresp"> <Parent>Tcp6muxSAPBase</Parent>
+   <Field>Uint16 ici</Field>
+  </Message>
+
+  <Message Name="Dtreq"> <Parent>Tcp6muxSAPBase</Parent>
+   <Field>Frame data</Field>
+  </Message>
+
+  <Message Name="Dreq"> <Parent>Tcp6muxSAPBase</Parent>
+   <Field>Frame data</Field>
+  </Message>
+
+ </User>
+
+ <Provider>
+
+  <Message Name="Cind"> <Parent>Tcp6muxSAPBase</Parent>
+   <Field>InetAddr6 addr</Field>
+   <Field>Frame data</Field>
+  </Message>
+
+  <Message Name="Cconf"> <Parent>Tcp6muxSAPBase</Parent>
+   <Field>InetAddr6 addr</Field>
+   <Field>Uint16 ici</Field>
+  </Message>
+
+  <Message Name="Dtind"> <Parent>Tcp6muxSAPBase</Parent>
+   <Field>Frame data</Field>
+  </Message>
+
+  <Message Name="Dind"> <Parent>Tcp6muxSAPBase</Parent>
+   <Field>Uint16 ici</Field>
+   <Field>Frame data</Field>
+  </Message>
+
+ </Provider>
+
+</SAP>
+

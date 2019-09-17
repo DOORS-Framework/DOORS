@@ -1,0 +1,192 @@
+<?xml version="1.0"?>
+
+<!-- 
+//  Copyright 2003
+//      Telecoms Lab, Tampere University of Technology.  All rights reserved.
+
+//  Redistribution and use in source and binary forms, with or without
+//  modification, are permitted provided that the following conditions
+//  are met:
+//  1. Redistributions of source code must retain the above copyright
+//     notice, this list of conditions and the following disclaimer.
+//  2. Redistributions in binary form must reproduce the above copyright
+//     notice, this list of conditions and the following disclaimer in the
+//     documentation and/or other materials provided with the distribution.
+//
+//  THIS SOFTWARE IS PROVIDED BY TAMPERE UNIVERSITY OF TECHNOLOGY AND
+//  CONTRIBUTORS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+//  BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+//  FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE UNIVERSITY
+//  OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+//  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+//  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+//  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+//  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+
+$Log: slppdu.pdu,v $
+Revision 1.7  2006/12/01 09:07:35  bilhanan
+Added ADDRRQST and ADDRRPLY
+
+Revision 1.6  2006/11/21 19:52:11  bilhanan
+development
+
+Revision 1.5  2006/07/29 21:41:10  bilhanan
+groundwork for AA imporovements
+
+Revision 1.4  2004/04/07 13:43:34  hartmanj
+slpheader.h steps in
+
+Revision 1.3  2003/07/23 10:10:59  bilhanan
+AA Advert + encoding/decoding functions introduced
+
+Revision 1.2  2003/06/04 11:09:56  kalliosa
+Licence clause added
+
+  
+-->
+
+
+<Peer Name="SLPPeer" 
+HIncludefiles="doors/slptypes.h,doors/slpheader.h,doors/slppdu.h,doors/serviceurl.h,doors/inetaddr6.h">
+<!--
+  <Message Name="slpHeader">
+      <Field>Uint8 version</Field> 
+      <Field>Uint8 functionID</Field>
+      <Field>Uint32 packetLength</Field>
+      <Field>Uint16 flags</Field>
+      <Field>Uint32 extOffset</Field> 
+      <Field>Uint16 XID</Field>
+      <Field>std::string langTag</Field>
+  </Message>
+-->
+
+
+  <Message Name="SRVRQST">
+       <Parent>SLPHeader</Parent>
+
+       <Field>AddrVector PRList</Field>
+       <Field>std::string servicetype</Field>
+       <Field>StringVector scopeList</Field>
+       <Field>std::string predicate</Field>
+       <Field>std::string spi</Field>
+  </Message>
+
+
+  <Message Name="SRVRPLY">
+        <Parent>SLPHeader</Parent>
+
+        <Field>Uint16 errorCode </Field>
+        <Field>URLVector urlEntries</Field>
+  </Message>
+
+  <Message Name="SRVREG">
+        <Parent>SLPHeader</Parent>
+
+        <Field>ServiceURL url </Field>
+        <Field>std::string  serviceType </Field>
+        <Field>Uint16 errorCode </Field>		
+        <Field>StringVector  scopeList</Field>
+        <Field>StringVector  attributeList </Field>
+        <Field>AuthBlockVector  AttrAuthBlocks</Field>
+  </Message>
+
+  <Message Name="SRVDEREG">
+        <Parent>SLPHeader</Parent>
+
+        <Field>StringVector  scopeList</Field>
+        <Field>ServiceURL url</Field>
+        <Field>StringVector tagList</Field>
+  </Message>
+
+  <Message Name="SRVACK">
+        <Parent>SLPHeader</Parent>
+
+        <Field>Uint16 errorCode</Field>
+
+  </Message>
+
+
+  <Message Name="ATTRRQST">
+       <Parent>SLPHeader</Parent>
+
+       <Field>AddrVector PRList</Field>
+
+        <Field>ServiceURL URL</Field>
+        <Field>StringVector scopeList</Field>
+        <Field>StringVector  tagList</Field>
+        <Field>std::string spiString</Field>
+
+  </Message>
+
+  <Message Name="ATTRRPLY">
+        <Parent>SLPHeader</Parent>
+
+        <Field>Uint16 errorCode</Field>
+        <Field>AttrVector  attributeList</Field>
+        <Field>StringVector attrAuthBlocks</Field>
+  </Message>
+
+
+  <Message Name="DAADVERT">
+        <Parent>SLPHeader</Parent>
+
+        <Field>Uint16 errorCode</Field>
+        <Field>Uint32 DABootStamp</Field>
+        <Field>ServiceURL url</Field>
+        <Field>StringVector scopeList</Field>
+        <Field>StringVector  attributeList</Field>
+        <Field>std::string spi</Field>
+        <Field>AuthBlockVector attrAuthBlocks</Field>
+  </Message>
+
+
+  <Message Name="SRVTYPERQST">
+       <Parent>SLPHeader</Parent>
+
+       <Field>AddrVector PRList</Field>
+
+        <Field>std::string namingA</Field>
+        <Field>StringVector scopeList</Field>
+  </Message>
+
+  <Message Name="SRVTYPERPLY">
+        <Parent>SLPHeader</Parent>
+
+        <Field>Uint16 errorCode</Field>
+        <Field>StringVector typeList</Field>
+  </Message>
+
+
+  <Message Name="SAADVERT">
+        <Parent>SLPHeader</Parent>
+        <Field>ServiceURL url</Field>
+        <Field>StringVector  scopeList</Field>
+        <Field>StringVector  attributeList</Field>
+        <Field>AuthBlockVector AttrAuthBlocks</Field>
+  </Message>
+
+  <Message Name="AAADVERT">
+        <Parent>SLPHeader</Parent>
+	<Field>Frame AAPrefix</Field>
+	<Field>Uint8 Capabilities</Field>
+        <Field>ServiceURL aa_url</Field>
+        <Field>ServiceURL da_url</Field>
+        <Field>StringVector  attributeList</Field>
+        <Field>AuthBlockVector AttrAuthBlocks</Field>
+  </Message>
+
+  <Message Name="ADDRRQST">
+        <Parent>SLPHeader</Parent>
+  </Message>
+
+  <Message Name="ADDRRPLY">
+        <Parent>SLPHeader</Parent>
+	<Field>Frame PeerAddress</Field>
+	<Field>Frame NetPrefix</Field>  
+  </Message>
+
+</Peer>

@@ -1,0 +1,139 @@
+<?xml version="1.0"?>
+<!--
+//  Copyright 2003
+//      Telecoms Lab, Tampere University of Technology.  All rights reserved.
+
+//  Redistribution and use in source and binary forms, with or without
+//  modification, are permitted provided that the following conditions
+//  are met:
+//  1. Redistributions of source code must retain the above copyright
+//     notice, this list of conditions and the following disclaimer.
+//  2. Redistributions in binary form must reproduce the above copyright
+//     notice, this list of conditions and the following disclaimer in the
+//     documentation and/or other materials provided with the distribution.
+//
+//  THIS SOFTWARE IS PROVIDED BY TAMPERE UNIVERSITY OF TECHNOLOGY AND
+//  CONTRIBUTORS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+//  BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+//  FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE UNIVERSITY
+//  OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+//  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+//  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+//  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+//  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+$Log: uaconnsm.sm,v $
+Revision 1.6  2004/04/08 10:53:04  hartmanj
+Added support for servicetype request (Srvtype_req)
+
+Revision 1.5  2004/04/05 07:02:16  hartmanj
+UAMain class renamed to UAEnt
+
+Revision 1.4  2004/03/30 06:07:06  hartmanj
+Fixes to rid compile errors
+
+Revision 1.3  2004/03/27 12:46:00  bilhanan
+rewritten ua functionality
+
+Revision 1.2  2003/06/04 11:10:00  kalliosa
+Licence clause added
+
+  
+-->
+
+<SM Name="UAConnSM" PTask="UAConn" HIncludeFiles="doors/uaent.h,doors/uaconn.h">
+
+<SAP-File Name="uasap.sap"/>
+<Peer-File Name="slppdu.pdu"/>
+
+<From UASAP="up"/> 
+<From SLPPeer="peer"/> 
+
+<State Name="mcIdle" Default="mcIdle_default">	
+  <Interface Name="up"> 
+      <Input Name="Srv_req">mcIdle_Srvreq</Input>
+      <Input Name="Srvtype_req">mcIdle_Srvtypereq</Input>
+      <Input Name="Attr_req">mcIdle_Attrreq</Input>
+      <Input Name="SLPClose_req">mcIdle_SLPClose</Input>
+  </Interface>
+  <Interface Name="peer">
+      <Input Name="DAADVERT">mcIdle_DAADVERT</Input>
+  </Interface>
+</State>
+
+<State Name="mcWfSrv" Default="mcWfSrv_default">	
+  <Interface Name="up">
+      <Input Name="SLPClose_req">mcWfSrv_SLPClose</Input>
+  </Interface>
+  <Interface Name="peer">
+      <Input Name="SRVRPLY">mcWfSrv_Srvrply</Input>
+      <Input Name="DAADVERT">mcWfSrv_DAADVERT</Input>
+  </Interface>
+  <Timer>mcWfSrv_timeout</Timer>
+</State>
+
+<State Name="mcWfSrvtype" Default="mcWfSrvtype_default">	
+  <Interface Name="up">
+      <Input Name="SLPClose_req">mcWfSrvtype_SLPClose</Input>
+  </Interface>
+  <Interface Name="peer">
+      <Input Name="SRVTYPERPLY">mcWfSrvtype_Srvtyperply</Input>
+      <Input Name="DAADVERT">mcWfSrvtype_DAADVERT</Input>
+  </Interface>
+  <Timer>mcWfSrvtype_timeout</Timer>
+</State>
+
+<State Name="mcWfAttr" Default="mcWfAttr_default">	
+  <Interface Name="up">
+      <Input Name="SLPClose_req">mcWfAttr_SLPClose</Input>
+  </Interface>
+  <Interface Name="peer">
+      <Input Name="ATTRRPLY">mcWfAttr_Attrrply</Input>
+      <Input Name="DAADVERT">mcWfAttr_DAADVERT</Input>
+  </Interface>
+  <Timer>mcWfAttr_timeout</Timer>
+</State>
+
+<State Name="daIdle" Default="daIdle_default">	
+  <Interface Name="up"> 
+      <Input Name="Srv_req">daIdle_Srvreq</Input>
+      <Input Name="Srvtype_req">daIdle_Srvtypereq</Input>
+      <Input Name="Attr_req">daIdle_Attrreq</Input>
+      <Input Name="SLPClose_req">daIdle_SLPClose</Input>
+  </Interface>
+</State>
+
+<State Name="daWfSrv" Default="daWfSrv_default">	
+  <Interface Name="up">
+      <Input Name="SLPClose_req">daWfSrv_SLPClose</Input>
+  </Interface>
+  <Interface Name="peer">
+      <Input Name="SRVRPLY">daWfSrv_Srvrply</Input>
+  </Interface>
+  <Timer>daWfSrv_timeout</Timer>
+</State>
+
+<State Name="daWfSrvtype" Default="daWfSrvtype_default">	
+  <Interface Name="up">
+      <Input Name="SLPClose_req">daWfSrvtype_SLPClose</Input>
+  </Interface>
+  <Interface Name="peer">
+      <Input Name="SRVTYPERPLY">daWfSrvtype_Srvtyperply</Input>
+  </Interface>
+  <Timer>daWfSrvtype_timeout</Timer>
+</State>
+
+<State Name="daWfAttr" Default="daWfAttr_default">	
+  <Interface Name="up">
+      <Input Name="SLPClose_req">daWfAttr_SLPClose</Input>
+  </Interface>
+  <Interface Name="peer">
+      <Input Name="ATTRRPLY">daWfAttr_Attrrply</Input>
+  </Interface>
+  <Timer>daWfAttr_timeout</Timer>
+</State>
+
+</SM>

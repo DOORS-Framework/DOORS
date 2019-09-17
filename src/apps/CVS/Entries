@@ -1,0 +1,17 @@
+/Makefile.am/1.2/Thu May 16 15:45:08 2002//
+/Makefile.in/1.14/Tue Oct 12 12:18:07 2004//
+D/altbit////
+D/browser////
+D/chatservice////
+D/corba////
+D/link////
+D/mc6joiner////
+D/namingd////
+D/propertyd////
+D/rtp////
+D/sap////
+D/slp6////
+D/tcp6mux////
+D/tcpmux////
+D/udp////
+D/udp6////

@@ -1,0 +1,51 @@
+
+SAP = {
+    Name = IIOPSAP;
+
+    IncludeFile = iiop.h;
+
+    User = {
+	 Address = Uint32 cep;
+	 Messages = {
+    		Opreq_r  = {
+		},
+		Oprep_r  = {
+		},
+		Locreq_r = {
+		},
+		Locrep_r = {
+		},
+		Cancreq_r = {
+		},
+		Closeconn_r = {
+		},
+		Mesgerr_r  = {
+		};
+	};
+
+    };
+
+    Provider = {
+	Address = Uint32 cep;
+	Messages = {
+    		Opreq_i  = {
+		},
+		Oprep_i  = {
+		},
+		Locreq_i = {
+		},
+		Locrep_i = {
+		},
+		Cancreq_i = {
+		},
+		Closeconn_i = {
+		},
+		Mesgerr_i = {
+		},
+		TCPFailInd = {
+			   Uint32 cep,
+			   Frame data
+		};
+	};
+   };
+};

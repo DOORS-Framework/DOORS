@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<Peer Name="GiopPeer" HIncludeFiles="doors/giopmsg11.h">
+
+    <Message Name="Request"><Parent>GiopMsg_1_1</Parent>
+         <Field>GIOP::RequestHeader_1_1 reqhdr</Field>
+         <Field>Frame body</Field>
+	 <Field>CORBA::NVList_ptr args</Field>
+    </Message>
+
+    <Message Name="Reply"><Parent>GiopMsg_1_1</Parent>
+	 <Field>GIOP::ReplyHeader_1_1 rephdr</Field>
+         <Field>Frame body</Field>
+    </Message>
+
+    <Message Name="CancelRequest"><Parent>GiopMsg_1_1</Parent>
+         <Field>GIOP::CancelRequestHeader_1_1 cancreqhdr</Field>
+         <Field>Frame body</Field>
+    </Message>
+
+    <Message Name="LocateRequest"><Parent>GiopMsg_1_1</Parent>
+         <Field>GIOP::LocateRequestHeader_1_1 lreqhdr</Field>
+         <!-- Message contains only header -->
+    </Message>
+
+    <Message Name="LocateReply"><Parent>GiopMsg_1_1</Parent>
+	 <Field>GIOP::LocateReplyHeader_1_1 lrephdr</Field>
+         <Field>Frame body</Field>
+    </Message>
+
+    <Message Name="CloseConnection"><Parent>GiopMsg_1_1</Parent>
+    </Message>
+
+    <Message Name="MessageError"><Parent>GiopMsg_1_1</Parent>
+    </Message>
+
+    <Message Name="Fragment"><Parent>GiopMsg_1_1</Parent>
+    </Message>
+
+</Peer>
+

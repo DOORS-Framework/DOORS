@@ -1,0 +1,14 @@
+/Makefile.am/1.8/Tue Oct 12 12:18:06 2004//
+/Makefile.in/1.17/Tue Oct 12 12:18:07 2004//
+/protocols.C/1.4/Mon Aug 19 08:09:52 2002//
+D/altbit////
+D/link////
+D/phys_virtual////
+D/rtcp////
+D/rtp////
+D/sap////
+D/slp6////
+D/tcp6mux////
+D/tcpmux////
+D/udp////
+D/udp6////

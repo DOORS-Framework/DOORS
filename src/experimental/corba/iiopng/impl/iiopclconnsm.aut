@@ -1,0 +1,86 @@
+SM = {
+	Type = IIOPClConnSM;
+
+	HostClass = IIOPClConnTask;
+	HostFile = IIOPClConn.h;
+
+	Inputs = {
+		Interface = {
+			Name = peer;
+			Type = GIOPPeer;
+			Messages = {
+				REQUEST = req,
+		        	REPLY   = rep,
+		        	CANCELREQUEST = cancreq,
+	        		LOCATEREQUEST  = lreq,
+				LOCATEREPLY   = lrep
+				CLOSECONNECTION = closecon,
+				MESSAGEERROR = msg_err,
+				TCPOPEN = tcpcon,
+				TCPOPENOK = tcpok,
+				TCPFAIL = tcpnok
+			};
+		},
+
+		Interface = {
+			Name = up;
+			Type = IIOPSAP;
+			Messages  = {
+				Opreq_r  = opreq_r,
+				Oprep_r  = oprep_r,
+				Locreq_r = locreq_r,
+				Locrep_r = locrep_r,
+				Cancreq_r = cancreq_r,
+				Closeconn_r = close_con_r,
+				Mesgerr_r  = mesgerr_r
+			};
+		},
+
+		Timers = {
+			Type = TimerMessage;
+		};
+    	};
+
+	States = {
+		closed = {
+			up   : opreq_r    = closed_opreq,
+			default		= closed_default
+		},
+
+		wfCopen = {
+		    	peer   : tcpok = wfCopen_tcpok,
+		    	peer   : tcpnok = wfCopen_tcpnok,
+		    	TimerMessage	= wfCopen_timeout,
+			default		= wfCopen_default
+		},
+	 
+		active = {
+		    	up   : opreq_r	= active_opreq,
+		    	up   : locreq_r	= active_locreq,
+			up   : mesgerr	= active_mesgerr,
+			up   : cancreq_r = active_cancreq,
+		    	peer : closecon	= active_closecon,
+			peer : msg_err	= active_mesg_err,
+		    	peer : tcpnok	= active_tcpnok,
+			default		= active_default
+		},
+
+		wfOpReply = {
+		    	peer : rep	= wfOpReply_rep,
+	    		TimerMessage	= wfOpReply_timeout,
+		    	peer : closecon	= wfOpReply_closecon,
+			peer : msg_err	= wfOpReply_mesg_err,
+		    	peer : tcpnok	= wfOpReply_tcpnok,
+			default		= wfOpReply_default
+		},
+
+		wfLocReply = {
+		    	peer : lrep	= wfLocReply_lrep,
+	    		TimerMessage	= wfLocReply_timeout,
+		    	peer : closecon	= wfLocReply_closecon,
+			peer : msg_err	= wfLocReply_mesg_err,
+		    	peer : tcpnok	= wfLocReply_tcpnok,
+			default		= wfLocReply_default
+		};
+    	};
+};

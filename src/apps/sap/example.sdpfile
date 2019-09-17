@@ -1,0 +1,15 @@
+# Template SDP file for SAP Announcer (details, see RFC 2327)
+# To use this file, replace with relevant details below. 
+# Remember to remove these comments, and the right & left angle brackets.
+v=0
+o=<userid> 7 3 IN IP4 <insert numerical originating ip address> 
+s=Example Session Announcement with DOORS
+i=I am too lame to change this info
+u=https://doors.atm.tut.fi/
+e=<Insert e-mail address>
+p=<Insert phone number>
+c=IN IP4 224.2.2.4/127
+t=0 0
+a=type:broadcast
+a=tool:DOORS SAP Announcer 0.6
+m=video 8888 RTP/AVP 31

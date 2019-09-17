@@ -1,0 +1,5 @@
+net.slp.IPv6Scope=2
+net.slp.SlpPort=30427
+net.slp.DAActiveDiscoveryInterval=20
+net.slp.BindPort=30427
+net.slpm6.AAAdvertTimeoutMax=1000

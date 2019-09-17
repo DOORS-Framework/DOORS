@@ -1,0 +1,42 @@
+SM = { 
+	Type = MP3TaskSM; 
+
+	HostClass = MP3Task; 
+	HostFile = mp3task.h; 
+
+	Inputs = { 
+		Interface = {
+			Name = rtpdown;
+			Type = RtpSAP;
+			Messages = {
+				Dti = dti
+			};
+		},
+		Interface = {
+			Name = rtcpdown;
+			Type = RtcpSAP;
+			Messages = {
+				Srdti = srdti,
+				Rrdti = rrdti,
+				Sdesdti = sdesdti,
+				Byedti = byedti,
+				Appdti = appdti
+			};
+		},
+		Timers = {
+			Type = TimerMessage;
+		};
+	}; 
+ 
+	States = {
+		Idle = {
+			rtpdown	: dti	       = idle_Dti,
+			rtcpdown : srdti       = idle_Sr,
+			rtcpdown : rrdti       = idle_Rr,
+			rtcpdown : sdesdti     = idle_Sdes,
+			rtcpdown : byedti      = idle_Bye,
+			rtcpdown : appdti      = idle_App,
+			TimerMessage	       = idle_Timeout
+		};
+	}; 
+};                       

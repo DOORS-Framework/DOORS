@@ -1,0 +1,85 @@
+SM = {
+	Type = IIOPSeConnTaskSM;
+
+	HostClass = IIOPServerTask;
+	HostFile = IIOPServerTask.h;
+
+	Inputs = {
+		Interface = {
+			Name = peer;
+			Type = IIOPPeer;
+			Messages = {
+				REQUEST = req,
+		        	REPLY   = rep,
+		        	CANCELREQUEST = cancreq,
+	        		LOCATEREQUEST  = lreq,
+				LOCATEREPLY   = lrep,
+				CLOSECONNECTION = closecon,
+				MESSAGEERROR = msg_err,
+				TCPOPENOK = tcpopen,
+				TCPFAIL = tcpfail
+			};
+		},
+
+		Interface = {
+			Name = up;
+			Type = IIOPSAP;
+			Messages  = {
+				Opreq  = opreq,
+				Oprep  = oprep,
+				Locreq = locreq,
+				Locrep = locrep,
+				Cancreq = cancreq,
+				Closeconn = close_con,
+				Mesgerr  = mesgerr
+			};
+		},
+
+		Timers = {
+			Type = TimerMessage;
+		};
+    	};
+
+	States = {
+		closed = {
+			default		= closed_default
+		},
+		wfCopen = {
+		    	peer   : tcpopen = wfCopen_tcpopen,
+		    	peer   : tcpfail = wfCopen_tcpfail,
+		    	TimerMessage	= wfCopen_timeout,
+			default		= wfCresp_default
+		},
+		active = {
+		        up   : close_con = active_close_con,
+			up   : mesgerr	= active_mesgerr
+		    	peer : req	= active_req,
+		    	peer : lreq	= active_lreq,
+		    	peer : cancreq	= active_cancreq
+			peer : msg_err	= active_mesg_err,
+		    	peer : tcpfail	= active_tcpfail,
+			default		= active_default
+		},
+		wfOpReply = {
+		    	up  : oprep	= wfOpReply_oprep,
+	    		TimerMessage	= wfOpReply_timeout,
+		        up   : close_con = wfOpReply_close_con,
+			up   : mesgerr	 = wfOpReply_mesgerr
+		    	peer : cancreq	= wfOpReply_cancreq
+			peer : msg_err	= wfOpReply_mesg_err,
+		    	peer : tcpfail	= wfOpReply_tcpfail,
+			default		= wfOpReply_default
+		},
+
+		wfLocReply = {
+		    	up  : locrep	= wfLocReply_locrep,
+	    		TimerMessage	= wfLocReply_timeout,
+		        up   : close_con = wfLocReply_close_con,
+			up   : mesgerr	= wfLocReply_mesgerr
+		    	peer : cancreq	= wfLocReply_cancreq
+			peer : msg_err	= wfLocReply_mesg_err,
+		    	peer : tcpfail	= wfLocReply_tcpfail,
+			default		= wfLocReply_default
+		};
+    	};
+};

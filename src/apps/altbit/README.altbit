@@ -1,0 +1,218 @@
+# $Log: README.altbit,v $
+# Revision 1.2  2004/01/21 08:25:17  bilhanan
+# altbit accepts 2 arguments now.
+#
+# Revision 1.1  2003/07/02 14:34:41  ik
+# Renames and protocol files moved to protocol section.
+#
+# Revision 1.1  2003/07/02 11:27:52  ik
+# Initial revision.
+#
+
+
+NAME
+    altbit - alternating bit protocol application to demonstrate protocol
+             programming in DOORS
+
+SYNOPSIS
+    altbit hostname port
+
+DESCRIPTION
+    Alternating bit protocol is a simple sliding window protocol with
+    window size of 1. The acknowledge packets use the message sequence 
+    numbers of 0 and 1. This program implements the protocol in one 
+    executable altbit which implements the both sender and receiver 
+    nodes. LEMon is used as a user interface to send and receive
+    strings. The sender task AltbitTask takes a string and starts 
+    sending it by putting one character from the string to each of the
+    PDUs. The receiver must acknowledge each packet by giving the
+    correct sequence number.
+
+    There are only two different packets, DATA and ACK, that are used 
+    in the communication. UDP is used as a transport method. 
+
+    DATA packets hold three bytes of information, a packet type character 
+    'D' which denotes to a DATA packet, a sequence number 0 or 1 and 
+    one byte of data, the character to be sent:
+
+          packet  sequence
+           type    number    data
+        +--------+--------+--------+
+        !  'D'   ! 0 or 1 !  char  !
+        +--------+--------+--------+
+
+    ACK packets hold two bytes of information with one byte of packet
+    type 'A' and a sequence number:
+
+          packet  sequence
+           type    number
+        +--------+--------+
+        !  'A'   ! 0 or 1 !
+        +--------+--------+
+
+    The state machine of the sending part is as follows. For simplicity,
+    the sequence numbers are not shown. Initially, the sequence number is
+    zero (0), the number of retries is zero and the maximum retry count 
+    is 5. There are two states, Idle and Wait, and the initial state is
+    Idle. The state machine is implemented in AltbitTask DOORS-task. The
+    task's user starts the sending procedure with a Send message which
+    contains a Frame 's' with one or more bytes. Consequently, AltbitTask
+    sends the first byte. This is illustrated in the picture with an
+    index variable 'i' which points to the beginning of string 's'.
+    The picture uses C-language style syntax. The system moves to Wait
+    state after that to wait for acknowledge from the receiver. In the
+    normal procedure, the receiver sends ACK with the same sequence
+    number as in the previous DATA packet every time a new character
+    is sent. That ACK packet is recognised as a acknowledge to the
+    DATA packet. The system flips the alternating bit 'a', increases
+    the pointer 'i' to 's' string, creates a new DATA message with
+    s[i] as a data and sends that packet. This continues until there
+    the pointer 'i' reaches the end of string 's' when the system
+    flips the alternating bit 'a' and sends an 'EOT', a zero byte.
+
+    When the last character is sent and acknowledged, the index 'i'
+    points to the (imaginary) End-Of-Transmission (EOT) character of the 
+    string 's' (i==len(s)) which is zero (0). That EOT character is sent 
+    to the receiver to inform it that all the characters have been sent. 
+    When an acknowledge of the EOT arrives (i>len(s)), the system
+    goes back to Idle state.
+    
+    Every time a new DATA packet is sent, the timer 't' started again.
+    In case the system receives ACK packets with a wrong sequence 
+    number (illustrated with ACK(0!=1) in the picture), it is just
+    ignored and waiting continues. In case the system does not receive
+    a valid ACK packet and the timer reaches a predefined limit
+    (timeout event), it increases the retry count, resends the
+    previous DATA packet, resets the timer and goes back to Wait state.
+    If the retry count exceeds the predefined maximum MAX, the system
+    gives up and goes back to Idle state.
+
+    
+                                              ACK,i=i+1,i<len(s)
+               timeout,retries>=MAX           -------------------
+               --------------------           t=0,a=!a,DATA(s[i])
+           +--------------------------------+  +-+
+           !                                !  ! ! +----+
+           !            Send(s)             !  ! ! !    ! timeout,retries<MAX
+           V      ----------------------    !  V ! V    ! -------------------
+     +----------+ t=0,a=0,i=0,DATA(s[i]) +----------+   !   retries++,t=0,
+     !          !----------------------->!          !---+   DATA(s[i])
+     !  Idle    !                        !  Wait    !
+     !          !<-----------------------!          !---+
+     +----------+  ACK,i=i+1,i>len(s)    +----------+   !ACK(0!=1)
+                   ------------------     ^ !    ^      !--------
+                                          ! !    !      !
+                                          ! !    +------+
+                                          +-+
+                                    ACK,i=i+1,i==len(s)
+                                    -------------------
+                                    t=0,a=!a,DATA(EOT)
+
+
+    The receiver part of altbit is a implemented in the AltbitTask
+    object with the sender part so the same task can act in the both 
+    roles. The receiver part is much simpler as it doesn't care 
+    about the timeouts but only operates as a "middleman" between
+    the user of the AltbitTask and the sender altbit application.
+    When a DATA packet is received, the system creates a message Rcv 
+    for the user task with the same alternating bit value 'a' and 
+    data character 'c'. The user's responsibility is to send an ACK
+    packet back and it is implemented with Ack message. When the
+    system receives Ack from the user, it creates an ACK packet for
+    the sender with alternating bit value 'a' from the Ack message. 
+    Because both systems may send packets in the same time, these
+    events may occur in both Idle and Wait states and the receiver 
+    only keeps the same state.
+
+    
+           +----------+
+           !          !
+           !          ! DATA(a,c)
+           V          !----------
+     +----------+     ! Rcv(a,c)
+     !          !-----+
+     !  Idle    !
+     !          !-----+
+     +----------+     !
+           ^          ! Ack(a)
+           !          !-------
+           !          ! ACK(a)
+           +----------+
+
+           +----------+
+           !          !
+           !          ! DATA(a,c)
+           V          !----------
+     +----------+     ! Rcv(a,c)
+     !          !-----+
+     !  Wait    !
+     !          !-----+
+     +----------+     !
+           ^          ! Ack(a)
+           !          !-------
+           !          ! ACK(a)
+           +----------+
+
+
+
+EXAMPLE
+    Two machines, 'pilli' and 'harmooni', are connected to the
+    Internet. Start altbit on the same port of your choice on both
+    machines. If no port number is given, altbit uses port 32001.
+    
+    On 'pilli':
+
+         $ altbit harmooni 12345
+
+    On 'harmooni':
+
+         $ altbit pilli 12345
+
+    LEMon command prompt is started and it is now waiting for user
+    commands:
+
+         ( tools system alias unalias shell Exit ? )
+
+    To start sending a new string from 'pilli' to 'harmooni', the
+    user can give the following command:
+
+    On 'pilli':
+
+         sys env usr send set abc<ENTER>
+
+    LEMon uses a command hierarchy where every one-word command
+    moves the user to a lower level in the hierarchy. Initially, the user
+    sits in the top level. The command 'system' or 'sys' shows all the
+    tasks in the DOORS-process. The task 'env' is the user task that
+    commands 'altbit' task. It has a Service Access Point 'usr' that
+    is used to send messages to 'altbit' task. The interface provides
+    a message 'send'. LEMon provides a command 'set' to set the 
+    attributes in the message. The message 'send' has one attribute
+    'data' (not shown), which is of the type Frame and it is set to
+    the value of 'abc'. Consequently, LEMon creates a message Send for
+    the 'altbit' (AltbitTask) task to send the string 'abc' to 'harmooni'
+    using alternating bit protocol.
+
+    When altbit task of the receiving process on 'harmooni' receives
+    a DATA packet, it creates an Ack message for its 'env' task. The
+    user on 'harmooni' is responsible to reply with an ACK packet. It
+    can be done with the following:
+
+    On 'harmooni':
+
+         sys env usr ack set 0<ENTER>
+
+    This is similar to the sending procedure but this time the 'env'
+    task creates an 'ack' message for the 'altbit' task. Ack message
+    has one attribute which is a sequence number. It must be the
+    same as the previously received DATA packet, 0 or 1. The example 
+    shows how to set and send an ACK packet with 0 as a sequence number.
+
+NOTES
+    This program is made for demonstration purposes only and not designed
+    for the serious data transmission :-). The receiver part should 
+    probably be moved to an own task with its own state machine for
+    cleaner design.
+
+AUTHOR
+    Ilkka Karvinen <ik@cs.tut.fi>

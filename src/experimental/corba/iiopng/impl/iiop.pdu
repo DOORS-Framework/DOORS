@@ -1,0 +1,32 @@
+Peer = {
+  Name = GIOP_1_0_Peer;
+   IncludeFile = giop.h;
+  
+  PDUs = {
+    Request = {
+      GIOP::RequestHeader_1_0 reqhdr;
+      Frame body;		  
+    },
+    Reply = {
+      GIOP::ReplyHeader_1_0 rephdr;
+      Frame body;
+    },
+    CancelRequest = {
+      GIOP::CancelRequestHeader reqhdr;
+    },
+    LocateRequest = {
+      GIOP::LocateRequestHeader_1_0 reqhdr;
+    },
+    LocateReply = {
+      GIOP::LocateReplyHeader_1_0 rephdr;
+      Frame body;
+    },
+    CloseConnection = {
+    },
+    MessageError = {
+    };
+
+  };
+
+};
+

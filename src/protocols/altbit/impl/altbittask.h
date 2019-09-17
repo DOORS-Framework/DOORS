@@ -1,0 +1,116 @@
+// Editor-info: -*- C++ -*-
+
+//  Copyright 2000 
+//  	Telecoms Lab, Tampere University of Technology.  All rights reserved.
+
+//  Redistribution and use in source and binary forms, with or without
+//  modification, are permitted provided that the following conditions
+//  are met:
+//  1. Redistributions of source code must retain the above copyright
+//     notice, this list of conditions and the following disclaimer.
+//  2. Redistributions in binary form must reproduce the above copyright
+//     notice, this list of conditions and the following disclaimer in the
+//     documentation and/or other materials provided with the distribution.
+//
+//  THIS SOFTWARE IS PROVIDED BY TAMPERE UNIVERSITY OF TECHNOLOGY AND 
+//  CONTRIBUTORS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+//  BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+//  FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE UNIVERSITY 
+//  OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+//  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+//  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+//  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+
+//===========================================================================
+//File:     altbittask.h
+//Date:     13.3.2003
+//Desc:     Header for alternating bit task
+//Author:   Ilkka Karvinen, TTY/DMI
+//===========================================================================
+
+/*
+$Log: altbittask.h,v $
+Revision 1.4  2010/02/19 08:04:21  bilhanan
+*** empty log message ***
+
+Revision 1.3  2004/02/01 23:15:30  bilhanan
+bugfixes, cvs diff for details on individual files.
+
+Revision 1.2  2003/08/24 22:26:54  bilhanan
+- state machine default function definitions moved to .C
+- const char* -> std::string
+- #include "..." -> #include <doors/...>
+
+Revision 1.1  2003/07/02 14:37:28  ik
+Moved to protocol section.
+
+Revision 1.1  2003/07/02 11:27:52  ik
+Initial revision.
+
+*/
+
+#ifndef ALTBITTASK_H
+#define ALTBITTASK_H
+
+#include <string>
+#include <doors/ptb.h>
+#include <doors/udp.h>
+#include <doors/ptask.h>
+#include <doors/inetaddr.h>
+#include <doors/timer.h>
+#include <doors/altbitsap.h>
+#include <doors/altbitsm.h>
+#include <doors/altbitpdu.h>
+
+#define MAX_RETRIES 5
+
+class AltbitTaskSM;
+
+class AltbitTask : public PTask {
+  
+public:
+  AltbitTask (std::string name, Scheduler* s, AltbitTaskSM* sm, InetAddr addr);
+
+  virtual ~AltbitTask();
+
+  UdpSAP :: User down;      // SAP to UDP task
+  AltbitSAP :: Provider up; // SAP to a user task
+  AltbitPeer peer;          // SAP to Altbit peer
+
+  // Idle state
+  bool idle_Default (Message* msg);
+  bool idle_Dtreq (Message* msg);
+  bool idle_Ackreq (Message* msg);
+  bool idle_DATA (Message* msg);
+  bool idle_ACK (Message* msg);
+
+  // Wait state
+  bool wait_Default (Message* msg);
+  bool wait_Dtreq (Message* msg);
+  bool wait_Ackreq (Message* msg);
+  bool wait_DATA (Message* msg);
+  bool wait_ACK (Message* msg);
+  bool wait_Timeout (Message* msg);
+
+  // Helper functions
+private:
+  void sendACK (bool altbit);
+  void sendDATA (Byte c);
+  void receiveDATA (Message* msg);
+  void receiveACK (Message* msg);
+  
+  // Class variables
+  
+  bool altbit_; 
+  Uint32 retries_;
+  Frame octets_;
+  InetAddr destaddr_;
+  Byte sent_byte_;
+  Timer timer_;
+
+};
+
+#endif
+
