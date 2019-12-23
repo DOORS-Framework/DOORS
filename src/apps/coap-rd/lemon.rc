@@ -1,0 +1,3 @@
+alias get sys env usr get set
+alias put sys env usr put set
+alias del sys env usr del set

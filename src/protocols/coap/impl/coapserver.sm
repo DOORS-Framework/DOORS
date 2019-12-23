@@ -1,0 +1,27 @@
+<SM Name="CoAPServerSM" PTask="CoAPserverTask" HIncludeFiles="coapservertask.h">
+<SAP-File Name="coapsap.sap"/>
+<Peer-File Name="coappdu.pdu"/>
+
+
+
+
+
+<From CoAPPeer="peer"/>
+
+ <State Name="Listen" Default="listen_default">
+  <Interface Name="peer"> 
+   <Input Name="CON">listen_CON</Input>
+  </Interface>
+ </State>
+
+ <State Name="Wait" Default="wait_default">
+  <Interface Name="peer"> 
+   <Input Name="ACK">wait_ACK</Input>
+  </Interface>
+  <Interface Name="peer">
+   <Input Name="RST">wait_RST</Input>
+  </Interface>
+  <Timer>wait_ACKtimeout</Timer>
+ </State>
+
+</SM>

@@ -1,0 +1,35 @@
+<Peer Name="CoAPPeer">
+
+  <Message Name="CON">
+   <Field>InetAddr ip</Field>
+	<Field> Byte VerTOC </Field>
+	<Field> Byte Code </Field>
+	<Field> Word MsgID </Field>
+	<Field> Frame Options </Field>
+	<Field> Frame Payload </Field>
+  </Message>
+<!--
+  <Message Name="NON">
+   <Field>InetAddr ip</Field>
+	<Field> Byte VerTOC </Field>
+	<Field> Byte Code </Field>
+	<Field> Word MsgID </Field>
+	<Field> Frame Options </Field>
+	<Field> Frame Payload </Field>
+  </Message>
+-->
+  <Message Name="ACK">
+   <Field>InetAddr ip</Field>
+	<Field> Byte VerTOC </Field>
+	<Field> Byte Code </Field>
+	<Field> Word MsgID </Field>
+
+  </Message>
+
+  <Message Name="RST">
+   <Field>InetAddr ip</Field>
+	<Field> Byte VerTOC </Field>
+	<Field> Byte Code </Field>
+	<Field> Word MsgID </Field>
+  </Message>
+</Peer>

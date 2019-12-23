@@ -1,0 +1,2 @@
+#!/bin/bash
+gcc -g -I -v -o coapServer server.cc -L/share/faster/include/doors/lib -ldoors_tools -ldoors_protocols -ldoors_base
